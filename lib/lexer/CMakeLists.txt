@@ -1,0 +1,1 @@
+add_library(${LEXER_LIBRARY_NAME} token.cc)
