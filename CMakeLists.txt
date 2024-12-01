@@ -1,6 +1,6 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.21)
-project(deeplang VERSION 1.0.0 LANGUAGES CXX)
+project(deeplang VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD          17) # set c++ standard to 17
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # without cpp 17, compiler will give error
@@ -11,6 +11,13 @@ option(BUILD_TESTS "Build tests" OFF) # for googletest
 
 set(LEXER_LIBRARY_NAME lexer)
 set(EXECUTABLE_NAME deeplang)
+
+find_package(LLVM REQUIRED CONFIG)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
+llvm_map_components_to_libnames(LLVM_LIBS core support irreader)
+
 
 add_subdirectory(lib)
 add_subdirectory(include)

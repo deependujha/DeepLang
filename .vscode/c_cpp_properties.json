@@ -4,7 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/third_party/googletest/googletest/include"
+                "${workspaceFolder}/third_party/googletest/googletest/include",
+                "/opt/homebrew/Cellar/llvm/19.1.4/include",
+                "/opt/homebrew/opt/llvm/include"
             ],
             "defines": [],
             "macFrameworkPath": [
