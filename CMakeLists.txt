@@ -15,7 +15,6 @@ set(EXECUTABLE_NAME deeplang)
 find_package(LLVM REQUIRED CONFIG)
 
 include_directories(${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(LLVM_LIBS core support irreader)
 
 
