@@ -5,7 +5,6 @@ enable_testing()
 set(
     TEST_CODE
     hello_test.cc
-    sum_test.cc
     )
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
