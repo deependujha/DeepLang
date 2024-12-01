@@ -11,7 +11,6 @@ set(
 include_directories("${CMAKE_SOURCE_DIR}/include")
 
 add_executable(TEST_CODE ${TEST_CODE})
-target_link_libraries(TEST_CODE ${LEXER_LIBRARY_NAME})
-target_link_libraries(TEST_CODE GTest::gtest_main)
+target_link_libraries(TEST_CODE GTest::gtest_main ${LLVM_LIBS} ${LEXER_LIBRARY_NAME})
 
 gtest_discover_tests(TEST_CODE)

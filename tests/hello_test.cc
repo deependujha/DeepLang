@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
+#include "llvm/ADT/APFloat.h"
 
 class SimpleTest : public testing::Test {};
 
 // Demonstrate some basic assertions.
 TEST_F(SimpleTest, BasicAssertions) {
+    llvm::fltSemantics;
     // Expect two strings not to be equal.
     EXPECT_STRNE("hello", "world");
     // Expect equality.
