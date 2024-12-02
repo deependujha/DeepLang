@@ -35,12 +35,10 @@ jobs:
         with:
           # working-directory: '${{github.workspace}}/Kerbal/doxygen'
           doxyfile-path: 'docs/Doxyfile'
-      - name: list files
-        run: ls; ls docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/html
+          path: html
 
   # Deployment job
   deploy:
