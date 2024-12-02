@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <cctype>
 #include <string>
 
 bool isStrFloat(const std::string& s) {
