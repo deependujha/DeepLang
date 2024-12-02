@@ -10,6 +10,8 @@ option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON) # for 
 option(BUILD_TESTS "Build tests" OFF) # for googletest
 
 set(LEXER_LIBRARY_NAME lexer)
+set(PARSER_LIBRARY_NAME parser)
+set(AST_LIBRARY_NAME ast)
 set(EXECUTABLE_NAME deeplang)
 
 find_package(LLVM REQUIRED CONFIG)
