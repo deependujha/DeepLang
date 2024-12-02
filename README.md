@@ -1,6 +1,6 @@
 # DeepLang
 
-<!-- ![work in progress](./assets/work-in-progress.jpg) -->
+![work in progress](./assets/work-in-progress.jpg)
 
 A lightweight, experimental interpreter framework to explore core concepts like autograd, computation graphs, and custom kernel execution. 🚀
 
