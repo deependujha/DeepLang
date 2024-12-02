@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.html": "html",
+        "*.docs_gitignore": "plaintext",
         "*.ino": "arduino",
         "*.pdf": "plaintext",
         "algorithm": "cpp",

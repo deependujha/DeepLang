@@ -1,4 +1,4 @@
-name: Generate and Deploy Doxygen Docs
+name: Update & Deploy Doxygen Docs
 
 on:
   push:
@@ -23,21 +23,29 @@ jobs:
     # Step 3: Build the Doxygen documentation
     - name: Generate Doxygen Docs
       run: |
+        pwd; ls
+        # if gh-pages branch doesn't exist
+        if [ `git rev-parse --verify gh-pages 2>/dev/null` ]
+        then
+          git checkout -b gh-pages
+        else
+          git checkout gh-pages
+        fi
+
+        # update .gitignore
+        mv .github/.docs-gitignore .gitignore
         make docs  # Assuming your Makefile has a `docs` target to generate Doxygen output
 
     # Step 4: Create a new branch if it does not exist and commit the docs
-    - name: Create or switch to gh-pages branch
+    - name: Push to repository (gh-pages branch)
       run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git fetch origin gh-pages || true
-        git checkout gh-pages || git checkout --orphan gh-pages
-        git rm -rf . || true
-        cp -r docs/html/* .  # Copy the generated Doxygen HTML to the root of the branch
-        touch .nojekyll  # To ensure GitHub Pages treats files correctly
-        git add .
-        git commit -m "Update Doxygen docs" || echo "No changes to commit"
-        git push origin gh-pages
+        run: |
+          git branch; git remote
+          git config --global user.name "deependujha"
+          git config --global user.email "deependujha21@gmail.com"
+          git add .
+          git commit -m "update docs"
+          git push origin gh-pages
 
     # Step 5: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
