@@ -16,9 +16,9 @@ setup:
 test:
 	@mkdir -p build \
 	&& cd build \
-	&& cmake -DBUILD_TESTS=ON .. \
-	&& cmake --build . \
-	&& ctest
+	&& cmake -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release .. \
+	&& cmake --build . --config Release \
+	&& ctest -C Release
 
 clean:
 	rm -rf build

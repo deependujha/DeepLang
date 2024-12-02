@@ -1,8 +1,8 @@
 #include "token.h"
 #include <iostream>
-#include <map>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
