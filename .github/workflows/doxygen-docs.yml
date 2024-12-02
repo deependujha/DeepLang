@@ -23,14 +23,8 @@ jobs:
     # Step 3: Build the Doxygen documentation
     - name: Generate Doxygen Docs
       run: |
-        pwd; ls
-        # if gh-pages branch doesn't exist
-        if [ `git rev-parse --verify gh-pages 2>/dev/null` ]
-        then
-          git checkout -b gh-pages
-        else
-          git checkout gh-pages
-        fi
+        pwd; ls; git branch; git remote
+        git checkout gh-pages
 
         # update .gitignore
         mv .github/.docs-gitignore .gitignore
