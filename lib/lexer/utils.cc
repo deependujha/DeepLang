@@ -1,5 +1,4 @@
 #include "utils.h"
-#include <cctype>
 #include <string>
 
 bool isStrFloat(const std::string& s) {
@@ -8,7 +7,7 @@ bool isStrFloat(const std::string& s) {
     }
 
     for (auto& e : s) {
-        if (isnumber(e) == false && e != '.') {
+        if ((e < '0' || e > '9') && e != '.') {
             return false;
         }
     }
