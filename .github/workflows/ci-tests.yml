@@ -25,7 +25,9 @@ jobs:
         submodules: recursive  # Ensures submodules are initialized and updated
     
     - name: Install LLVM
-      run: sudo apt-get install llvm -y
+      run: |
+        sudo apt-get install llvm -y
+        sudo apt-get install clang -y
 
 
     - name: Configure CMake
