@@ -1,9 +1,12 @@
-.PHONY: all setup test clean run rc exe
+.PHONY: all setup test clean run rc exe docs
 
 all:
 	@echo "Run 'make setup' to setup the project"
 	@echo "Run 'make test' to run the tests"
 	@echo "Run 'make clean' to clean the project"
+
+docs:
+	@cd docs && doxygen
 
 setup:
 	@mkdir -p build \
