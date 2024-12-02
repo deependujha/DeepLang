@@ -1,6 +1,7 @@
 #include <exception>
 #include <iostream>
 #include "token.h"
+#include "utils.h"
 
 using namespace lexer;
 
@@ -30,9 +31,18 @@ int main() {
             "else",
             "elseif",
             "elif",
-        };
+            "22.5",
+            "10",
+            "0",
+            "0.1",
+            "99",
+            "99.0",
+            "32.",
+            "32.1e"};
+        bool isFloat = false;
         for (auto& word : words) {
-            BaseToken bs = tokenizeWord(word, tou);
+            isFloat = isStrFloat(word);
+            BaseToken bs = tokenizeWord(word, tou, isFloat);
             bs.printLn();
         }
         delete tou;

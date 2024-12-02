@@ -54,16 +54,6 @@ void BaseToken::printLn() {
     std::cout << '\n';
 }
 
-BaseToken tokenizeWord(
-    const std::string& word,
-    lexer::TokenOperatorUtils* tou) {
-    if (tou->stringToToken.find(word) == tou->stringToToken.end()) {
-        return BaseToken(tou, STRING, word, 0.0f);
-    }
-    int32_t tk = tou->stringToToken[word];
-    return BaseToken(tou, SUPPORTED_TOKENS(tk), "", 0.0f);
-}
-
 TokenOperatorUtils::TokenOperatorUtils() {
     this->_initialize();
 }
@@ -105,4 +95,23 @@ void TokenOperatorUtils::_initialize() {
         ">=",
         "<=",
     };
+}
+
+BaseToken tokenizeWord(
+    const std::string& word,
+    lexer::TokenOperatorUtils* tou,
+    bool isFloat) {
+    if (tou->stringToToken.find(word) == tou->stringToToken.end()) {
+        // token can be string or float or boolean
+        // strings will start with `:`
+        if (word == "false" || word == "true") {
+            return BaseToken(tou, BOOLEAN, word, 0.0f);
+        }
+        if (isFloat) {
+            return BaseToken(tou, FLOAT, "", stof(word));
+        }
+        return BaseToken(tou, STRING, word, 0.0f);
+    }
+    int32_t tk = tou->stringToToken[word];
+    return BaseToken(tou, SUPPORTED_TOKENS(tk), "", 0.0f);
 }

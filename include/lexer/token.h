@@ -81,4 +81,5 @@ class BaseToken {
 
 lexer::BaseToken tokenizeWord(
     const std::string& word,
-    lexer::TokenOperatorUtils* tou);
+    lexer::TokenOperatorUtils* tou,
+    bool isFloat = false);
