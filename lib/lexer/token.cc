@@ -1,4 +1,5 @@
 #include "token.h"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -9,7 +10,8 @@
 using namespace lexer;
 
 BaseToken::BaseToken(
-    SUPPORTED_TOKENS token,
+    lexer::TokenOperatorUtils* tou,
+    int32_t token,
     std::string value,
     float value_float) {
     if ((token != SUPPORTED_TOKENS::STRING &&
@@ -24,10 +26,13 @@ BaseToken::BaseToken(
     this->token = token;
     this->value = value;
     this->value_float = value_float;
+    this->tou = tou;
 }
 
-SUPPORTED_TOKENS BaseToken::getToken() {
-    return token;
+std::string BaseToken::getToken() {
+    std::string s = tou->tokenToString[this->token];
+    transform(s.begin(), s.end(), s.begin(), ::toupper);
+    return s;
 }
 
 std::string BaseToken::getValue() {
@@ -38,14 +43,25 @@ float BaseToken::getValueFloat() {
     return value_float;
 }
 
+void BaseToken::print() {
+    std::cout << "BaseToken( token=" << this->getToken() << ", value = '"
+              << this->getValue()
+              << "', value_float = " << this->getValueFloat() << " )";
+}
+
+void BaseToken::printLn() {
+    this->print();
+    std::cout << '\n';
+}
+
 BaseToken tokenizeWord(
     const std::string& word,
     lexer::TokenOperatorUtils* tou) {
     if (tou->stringToToken.find(word) == tou->stringToToken.end()) {
-        return BaseToken(STRING, word, 0.0f);
+        return BaseToken(tou, STRING, word, 0.0f);
     }
     int32_t tk = tou->stringToToken[word];
-    return BaseToken(SUPPORTED_TOKENS(tk), "", 0.0f);
+    return BaseToken(tou, SUPPORTED_TOKENS(tk), "", 0.0f);
 }
 
 TokenOperatorUtils::TokenOperatorUtils() {
