@@ -15,10 +15,10 @@ BaseToken::BaseToken(
     if ((token != SUPPORTED_TOKENS::STRING &&
          token != SUPPORTED_TOKENS::OPERATOR) &&
         !value.empty()) {
-        throw std::invalid_argument("non-string token passes string value");
+        throw std::runtime_error("non-string token passes string value");
     }
     if (token != SUPPORTED_TOKENS::FLOAT && value_float != 0.0f) {
-        throw std::invalid_argument("non-float token passes float value");
+        throw std::runtime_error("non-float token passes float value");
     }
 
     this->token = token;
@@ -40,14 +40,53 @@ float BaseToken::getValueFloat() {
 
 BaseToken tokenizeWord(
     const std::string& word,
-    std::unordered_map<std::string, int32_t> stringToToken) {
-    std::cout << "in the function = " << word << "\n"
-              << stringToToken.size() << "\n";
-    if (stringToToken.find(word) == stringToToken.end()) {
-        return BaseToken(VARIABLE, word, 0.0f);
+    lexer::TokenOperatorUtils* tou) {
+    if (tou->stringToToken.find(word) == tou->stringToToken.end()) {
+        return BaseToken(STRING, word, 0.0f);
     }
-    std::cout << (stringToToken.find(word) == stringToToken.end()) << "\n";
-    int32_t tk = stringToToken[word];
-    std::cout << "tk is: " << tk << "\n";
+    int32_t tk = tou->stringToToken[word];
     return BaseToken(SUPPORTED_TOKENS(tk), "", 0.0f);
+}
+
+TokenOperatorUtils::TokenOperatorUtils() {
+    this->_initialize();
+}
+
+void TokenOperatorUtils::_initialize() {
+    this->tokenToString = {
+        {LET, "let"},
+        {VARIABLE, "variable"},
+        {STRING, "string"},
+        {FLOAT, "float"},
+        {BOOLEAN, "bool"},
+        {OPERATOR, "operator"},
+        {IF, "if"},
+        {ELIF, "elif"},
+        {ELSE, "else"},
+        {LOOP, "loop"},
+        {MY_TYPE, "my_type"},
+        {METHOD, "method"},
+        {AND, "and"},
+        {OR, "or"},
+        {FN, "fn"},
+        {RETURN, "return"},
+    };
+    for (auto& e : this->tokenToString) {
+        this->stringToToken[e.second] = e.first;
+    }
+    operators = {
+        "+",
+        "-",
+        "*",
+        "/",
+        "//",
+        "**",
+        "=",
+        "==",
+        "->",
+        ">",
+        "<",
+        ">=",
+        "<=",
+    };
 }

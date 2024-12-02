@@ -1,4 +1,4 @@
-.PHONY: all setup test clean
+.PHONY: all setup test clean run rc exe
 
 all:
 	@echo "Run 'make setup' to setup the project"
@@ -11,7 +11,7 @@ setup:
 	&& cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. \
 	&& cmake --build .
 	@echo "==================== Setup Finished ===================="
-	@echo "Run './build/src/deeplang' to run the program"
+	@echo "Execute 'make run', or 'make rc #run clean' or './build/src/deeplang' to run the program"
 
 test:
 	@mkdir -p build \
@@ -22,3 +22,19 @@ test:
 
 clean:
 	rm -rf build
+
+run:
+	@echo ">> ./build/src/deeplang"
+	@./build/src/deeplang
+
+# run clean
+rc:
+	@clear
+	@make run
+
+exe: setup rc
+
+# not tidy (ignore clang-tidy error)
+ntidy_commit:
+	git add .
+	IGNORE_CLANG_TIDY_ERROR=1 git commit

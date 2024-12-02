@@ -40,42 +40,16 @@ enum SUPPORTED_TOKENS : int8_t {
 
 };
 
-static std::vector<std::string> operators = {
-    "+",
-    "-",
-    "*",
-    "/",
-    "//",
-    "**",
-    "=",
-    "==",
-    "->",
-    ">",
-    "<",
-    ">=",
-    "<=",
-};
+class TokenOperatorUtils {
+  public:
+    std::unordered_map<int32_t, std::string> tokenToString;
+    std::unordered_map<std::string, int32_t> stringToToken;
+    std::set<std::string> operators;
 
-static std::unordered_map<int32_t, std::string> tokenToString = {
-    {LET, "let"},
-    {VARIABLE, "variable"},
-    {STRING, "string"},
-    {FLOAT, "float"},
-    {BOOLEAN, "bool"},
-    {OPERATOR, "operator"},
-    {IF, "if"},
-    {ELIF, "elif"},
-    {ELSE, "else"},
-    {LOOP, "loop"},
-    {MY_TYPE, "my_type"},
-    {METHOD, "method"},
-    {AND, "and"},
-    {OR, "or"},
-    {FN, "fn"},
-    {RETURN, "return"},
-};
+    TokenOperatorUtils();
 
-static std::unordered_map<std::string, int32_t> stringToToken;
+    void _initialize();
+};
 
 class BaseToken {
   protected:
@@ -98,4 +72,4 @@ class BaseToken {
 
 lexer::BaseToken tokenizeWord(
     const std::string& word,
-    std::unordered_map<std::string, int32_t> stringToToken);
+    lexer::TokenOperatorUtils* tou);
