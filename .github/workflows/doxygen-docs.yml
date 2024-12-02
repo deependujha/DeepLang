@@ -23,9 +23,6 @@ jobs:
     # Step 3: Build the Doxygen documentation
     - name: Generate Doxygen Docs
       run: |
-        pwd; ls; git branch; git remote
-        git checkout gh-pages
-
         # update .gitignore
         mv .github/.docs-gitignore .gitignore
         make docs  # Assuming your Makefile has a `docs` target to generate Doxygen output
