@@ -53,19 +53,28 @@ class TokenOperatorUtils {
 
 class BaseToken {
   protected:
-    SUPPORTED_TOKENS token;
+    int32_t token;
     std::string value;
     float value_float{};
+    lexer::TokenOperatorUtils* tou;
 
   public:
     BaseToken(
-        SUPPORTED_TOKENS token,
+        lexer::TokenOperatorUtils* tou,
+        int32_t token,
         std::string value = "",
         float value_float = 0.0f);
 
-    SUPPORTED_TOKENS getToken();
+    // methods
+    std::string getToken();
+
     std::string getValue();
+
     float getValueFloat();
+
+    void print();
+
+    void printLn();
 };
 
 } // namespace lexer

@@ -81,6 +81,6 @@
         "unordered_set": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
     }
 }

@@ -32,10 +32,7 @@ int main() {
             "elif"};
         for (auto& word : words) {
             BaseToken bs = tokenizeWord(word, tou);
-            std::cout << word << " -> BaseToken(token="
-                      << tou->tokenToString[int32_t(bs.getToken())]
-                      << ", value = '" << bs.getValue()
-                      << "'; value_float = " << bs.getValueFloat() << '\n';
+            bs.printLn();
         }
         delete tou;
     } catch (const std::exception& e) {
