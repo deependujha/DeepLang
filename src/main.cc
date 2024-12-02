@@ -29,7 +29,8 @@ int main() {
             "if",
             "else",
             "elseif",
-            "elif"};
+            "elif",
+        };
         for (auto& word : words) {
             BaseToken bs = tokenizeWord(word, tou);
             bs.printLn();
