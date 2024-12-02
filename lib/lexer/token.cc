@@ -1,4 +1,5 @@
 #include "token.h"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
