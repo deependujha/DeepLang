@@ -25,21 +25,20 @@ jobs:
     # Step 3: Build the Doxygen documentation
     - name: Generate Doxygen Docs
       run: |
-        # update .gitignore
-        mv .github/.docs-gitignore .gitignore
-        make docs  # Assuming your Makefile has a `docs` target to generate Doxygen output
+        git checkout gh-pages \
+        && mv .github/.docs-gitignore .gitignore \
+        && make docs
 
     # Step 4: Create a new branch if it does not exist and commit the docs
     - name: Push to repository (gh-pages branch)
       run: |
         run: |
-          git branch; git remote
-          git config --global user.name "deependujha"
-          git config --global user.email "deependujha21@gmail.com"
-          git add .
-          git commit -m "update docs"
-          git pull --rebase
-          git push -u origin main:gh-pages
+          git checkout gh-pages  \
+          && git config --global user.name "deependujha" \
+          && git config --global user.email "deependujha21@gmail.com" \
+          && git add . \
+          && git commit -m "update docs" \
+          && git push -u origin main:gh-pages \
 
     # Step 5: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
