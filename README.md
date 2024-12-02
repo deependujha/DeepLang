@@ -2,7 +2,7 @@
 
 ![work in progress](./assets/wip.jpg)
 
-A lightweight, experimental interpreter framework to explore core concepts like autograd, computation graphs, and custom kernel execution. 🚀
+**DeepLang**: A lightweight, experimental interpreter framework designed to explore core concepts in language frontend, intermediate representation (IR), analysis and transformation passes, and specialized architecture backends. 🚀
 
 ---
 
