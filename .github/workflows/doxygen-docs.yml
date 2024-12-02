@@ -38,6 +38,7 @@ jobs:
           git config --global user.email "deependujha21@gmail.com"
           git add .
           git commit -m "update docs"
+          git pull --rebase
           git push -u origin main:gh-pages
 
     # Step 5: Deploy to GitHub Pages
