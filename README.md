@@ -1,5 +1,11 @@
 # DeepLang
 
+![work in progress](./assets/work-in-progress.jpg)
+
+A lightweight, experimental interpreter framework to explore core concepts like autograd, computation graphs, and custom kernel execution. 🚀
+
+---
+
 ## Setup
 
 ```bash
@@ -12,7 +18,8 @@ cmake --build .
 
 ---
 
-## Using pre-commit hook to format and tidy
+<details>
+  <summary>Using pre-commit hook to format and tidy</summary>
 
 - `lint-code.sh` file contains the code to format and tidy the code.
 - `.git/hooks/pre-commit` file contains the code to run the script.
@@ -27,3 +34,5 @@ sh lint-code.sh
 
 echo "Pre-commit checks complete."
 ```
+
+</details>
