@@ -3,7 +3,7 @@
 #include "utils/check_type.h"
 
 namespace parser {
-int parser::OperatorPrecedence::GetTokPrecedence(char op) {
+int parser::OperatorPrecedence::GetTokPrecedence(const std::string op) {
     int TokPrec = BinopPrecedence[op];
     if (TokPrec <= 0) {
         return -1;
@@ -78,7 +78,8 @@ lexer::BaseToken* Parser::getTok() {
     // Otherwise, just return the character as its ascii value.
     // int ThisChar = LastChar;
     // LastChar = char(getchar());
-    return new lexer::BaseToken(this->tou, lexer::OPERATOR);
+    return new lexer::BaseToken(
+        this->tou, lexer::OPERATOR, std::string{LastChar});
 }
 
 } // namespace parser

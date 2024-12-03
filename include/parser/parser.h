@@ -8,17 +8,17 @@
 namespace parser {
 class OperatorPrecedence {
   private:
-    std::map<char, int> BinopPrecedence = {
-        {'<', 10},
-        {'+', 20},
-        {'-', 20},
-        {'*', 40}, // highest.
+    std::map<std::string, int> BinopPrecedence = {
+        {"<", 10},
+        {"+", 20},
+        {"-", 20},
+        {"*", 40}, // highest.
     };
 
   public:
     /// GetTokPrecedence - Get the precedence of the pending binary operator
     /// token.
-    int GetTokPrecedence(char op);
+    int GetTokPrecedence(std::string op);
 };
 
 class Parser {
@@ -26,9 +26,11 @@ class Parser {
     /// gettok - Return the next token from standard input.
     lexer::TokenOperatorUtils* tou;
     lexer::BaseToken* getTok();
+    OperatorPrecedence* op;
 
   public:
-    Parser(lexer::TokenOperatorUtils* tou) : tou(tou) {}
+    Parser(lexer::TokenOperatorUtils* tou)
+        : tou(tou), op(new OperatorPrecedence()) {}
     lexer::BaseToken* bt{};
 
     lexer::BaseToken* getNextToken();
