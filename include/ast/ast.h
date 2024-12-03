@@ -13,26 +13,23 @@ class ExprAST {
 
 /// NumberExprAST - Expression class for numeric literals like "1.0".
 class NumberExprAST : public ExprAST {
-    float Val;
-
   public:
+    float Val;
     NumberExprAST(float Val) : Val(Val) {}
 };
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
 class VariableExprAST : public ExprAST {
-    std::string Name;
-
   public:
+    std::string Name;
     VariableExprAST(std::string Name) : Name(std::move(Name)) {}
 };
 
 /// BinaryExprAST - Expression class for a binary operator.
 class BinaryExprAST : public ExprAST {
+  public:
     std::string Op;
     std::unique_ptr<ExprAST> LHS, RHS;
-
-  public:
     BinaryExprAST(
         std::string Op,
         std::unique_ptr<ExprAST> LHS,
@@ -42,10 +39,10 @@ class BinaryExprAST : public ExprAST {
 
 /// CallExprAST - Expression class for function calls.
 class CallExprAST : public ExprAST {
+  public:
     std::string Callee;
     std::vector<std::unique_ptr<ExprAST>> Args;
 
-  public:
     CallExprAST(std::string Callee, std::vector<std::unique_ptr<ExprAST>> Args)
         : Callee(std::move(Callee)), Args(std::move(Args)) {}
 };
@@ -54,10 +51,10 @@ class CallExprAST : public ExprAST {
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes).
 class PrototypeAST {
+  public:
     std::string Name;
     std::vector<std::string> Args;
 
-  public:
     PrototypeAST(std::string Name, std::vector<std::string> Args)
         : Name(std::move(Name)), Args(std::move(Args)) {}
 
@@ -68,10 +65,10 @@ class PrototypeAST {
 
 /// FunctionAST - This class represents a function definition itself.
 class FunctionAST {
+  public:
     std::unique_ptr<PrototypeAST> Proto;
     std::unique_ptr<ExprAST> Body;
 
-  public:
     FunctionAST(
         std::unique_ptr<PrototypeAST> Proto,
         std::unique_ptr<ExprAST> Body)
