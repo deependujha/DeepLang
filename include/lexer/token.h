@@ -8,6 +8,7 @@ namespace lexer {
 enum SUPPORTED_TOKENS : int8_t {
     // identifier
     LET,
+    SEMICOLON,
 
     // datatypes
     VARIABLE,
@@ -38,6 +39,9 @@ enum SUPPORTED_TOKENS : int8_t {
     FN,
     RETURN,
 
+    // end-of-file
+    END_OF_FILE,
+
 };
 
 class TokenOperatorUtils {
@@ -67,6 +71,7 @@ class BaseToken {
 
     // methods
     std::string getToken();
+    SUPPORTED_TOKENS getTokenEnum();
 
     std::string getValue();
 

@@ -35,6 +35,10 @@ std::string BaseToken::getToken() {
     return s;
 }
 
+lexer::SUPPORTED_TOKENS BaseToken::getTokenEnum() {
+    return lexer::SUPPORTED_TOKENS(this->token);
+}
+
 std::string BaseToken::getValue() {
     return value;
 }
@@ -61,6 +65,7 @@ TokenOperatorUtils::TokenOperatorUtils() {
 void TokenOperatorUtils::_initialize() {
     this->tokenToString = {
         {LET, "let"},
+        {SEMICOLON, ";"},
         {VARIABLE, "variable"},
         {STRING, "string"},
         {FLOAT, "float"},

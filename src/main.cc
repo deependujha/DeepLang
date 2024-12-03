@@ -1,7 +1,7 @@
 #include <exception>
 #include <iostream>
-#include "token.h"
-#include "utils.h"
+#include "lexer/token.h"
+#include "utils/check_type.h"
 
 using namespace lexer;
 

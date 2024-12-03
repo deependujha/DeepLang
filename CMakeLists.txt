@@ -9,9 +9,13 @@ option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON) # for 
 
 option(BUILD_TESTS "Build tests" OFF) # for googletest
 
+set(PROJECT_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+
 set(LEXER_LIBRARY_NAME lexer)
-set(PARSER_LIBRARY_NAME parser)
 set(AST_LIBRARY_NAME ast)
+set(PARSER_LIBRARY_NAME parser)
+set(MAIN_LOOP_LIBRARY_NAME main_loop)
+set(UTILS_LIBRARY_NAME utils)
 set(EXECUTABLE_NAME deeplang)
 
 find_package(LLVM REQUIRED CONFIG)
@@ -21,7 +25,6 @@ llvm_map_components_to_libnames(LLVM_LIBS core support irreader)
 
 
 add_subdirectory(lib)
-add_subdirectory(include)
 add_subdirectory(src)
 
 
