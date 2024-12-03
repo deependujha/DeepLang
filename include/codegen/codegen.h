@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "ast.h"
+#include "ast/ast.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"

@@ -5,8 +5,7 @@ set(codegen
 add_library(${CODEGEN_LIBRARY_NAME} ${codegen})
 
 target_include_directories(${CODEGEN_LIBRARY_NAME} PRIVATE
-    ${PROJECT_INCLUDE_DIR}/codegen
-    ${PROJECT_INCLUDE_DIR}/ast
+    ${PROJECT_INCLUDE_DIR}
     ${LLVM_INCLUDE_DIRS}
 )
 

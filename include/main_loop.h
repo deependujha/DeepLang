@@ -1,4 +1,5 @@
 #pragma once
+#include "codegen/codegen.h"
 #include "lexer/token.h"
 #include "parser/parser.h"
 
