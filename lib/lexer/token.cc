@@ -15,9 +15,13 @@ BaseToken::BaseToken(
     std::string value,
     float value_float) {
     if ((token != SUPPORTED_TOKENS::STRING &&
-         token != SUPPORTED_TOKENS::OPERATOR) &&
+         token != SUPPORTED_TOKENS::OPERATOR &&
+         token != SUPPORTED_TOKENS::VARIABLE) &&
         !value.empty()) {
-        throw std::runtime_error("non-string token passes string value");
+        std::string errMsg = "non-string token (" +
+            tou->tokenToString[SUPPORTED_TOKENS(token)] +
+            ") passes string value";
+        throw std::runtime_error(errMsg);
     }
     if (token != SUPPORTED_TOKENS::FLOAT && value_float != 0.0f) {
         throw std::runtime_error("non-float token passes float value");
