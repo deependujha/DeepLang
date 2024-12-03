@@ -23,8 +23,8 @@ void MainLoop::run() {
 }
 
 void MainLoop::HandleDefinition() {
-    if (prs->ParseDefinition()) {
-        fprintf(stderr, "Parsed a function definition.\n");
+    if (auto FnAST = prs->ParseDefinition()) {
+        this->cg->printIR(*FnAST);
     } else {
         // Skip token for error recovery.
         prs->getNextToken();
@@ -33,8 +33,8 @@ void MainLoop::HandleDefinition() {
 
 void MainLoop::HandleTopLevelExpression() {
     // Evaluate a top-level expression into an anonymous function.
-    if (prs->ParseTopLevelExpr()) {
-        fprintf(stderr, "Parsed a top-level expr\n");
+    if (auto FnAST = prs->ParseTopLevelExpr()) {
+        this->cg->printIR(*FnAST, true);
     } else {
         // Skip token for error recovery.
         prs->getNextToken();

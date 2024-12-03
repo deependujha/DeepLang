@@ -26,6 +26,27 @@ llvm::Value* CodeGen::LogErrorV(const char* Str) {
     return nullptr;
 }
 
+llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
+    // Example: return nullptr if not yet implemented.
+    return nullptr;
+}
+
+void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
+    if (llvm::Function* FnIR = this->codegen(expAst)) {
+        if (anonymous) {
+            fprintf(stderr, "Read top-level expression:");
+        } else {
+            fprintf(stderr, "Read function definition:");
+        }
+        FnIR->print(llvm::errs());
+        fprintf(stderr, "\n");
+
+        if (anonymous) { // Remove the anonymous expression.
+            FnIR->eraseFromParent();
+        }
+    }
+}
+
 llvm::Value* CodeGen::codegen(const ast::NumberExprAST& numAst) {
     return llvm::ConstantFP::get(*this->TheContext, llvm::APFloat(numAst.Val));
 }

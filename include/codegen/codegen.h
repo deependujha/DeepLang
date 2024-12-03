@@ -37,12 +37,14 @@ class CodeGen {
     virtual ~CodeGen() = default;
     llvm::Value* LogErrorV(const char* Str);
 
-    virtual llvm::Value* codegen(const ast::ExprAST& exprAst) = 0;
+    virtual llvm::Value* codegen(const ast::ExprAST& exprAst);
     llvm::Value* codegen(const ast::NumberExprAST& numAst);
     llvm::Value* codegen(const ast::VariableExprAST& varAst);
     llvm::Value* codegen(const ast::BinaryExprAST& binAst);
     llvm::Value* codegen(const ast::CallExprAST& calAst);
     llvm::Function* codegen(const ast::PrototypeAST& protoAst);
     llvm::Function* codegen(const ast::FunctionAST& fnAst);
+
+    void printIR(const ast::FunctionAST& expAst, bool anonymous = false);
 };
 } // namespace codegen

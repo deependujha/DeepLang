@@ -6,8 +6,8 @@
 class MainLoop {
   private:
     parser::Parser* prs;
+    codegen::CodeGen* cg = new codegen::CodeGen();
     void HandleDefinition();
-
     void HandleTopLevelExpression();
 
   public:
