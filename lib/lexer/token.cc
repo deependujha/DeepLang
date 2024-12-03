@@ -15,9 +15,13 @@ BaseToken::BaseToken(
     std::string value,
     float value_float) {
     if ((token != SUPPORTED_TOKENS::STRING &&
-         token != SUPPORTED_TOKENS::OPERATOR) &&
+         token != SUPPORTED_TOKENS::OPERATOR &&
+         token != SUPPORTED_TOKENS::VARIABLE) &&
         !value.empty()) {
-        throw std::runtime_error("non-string token passes string value");
+        std::string errMsg = "non-string token (" +
+            tou->tokenToString[SUPPORTED_TOKENS(token)] +
+            ") passes string value";
+        throw std::runtime_error(errMsg);
     }
     if (token != SUPPORTED_TOKENS::FLOAT && value_float != 0.0f) {
         throw std::runtime_error("non-float token passes float value");
@@ -33,6 +37,10 @@ std::string BaseToken::getToken() {
     std::string s = tou->tokenToString[this->token];
     transform(s.begin(), s.end(), s.begin(), ::toupper);
     return s;
+}
+
+lexer::SUPPORTED_TOKENS BaseToken::getTokenEnum() {
+    return lexer::SUPPORTED_TOKENS(this->token);
 }
 
 std::string BaseToken::getValue() {
@@ -61,6 +69,7 @@ TokenOperatorUtils::TokenOperatorUtils() {
 void TokenOperatorUtils::_initialize() {
     this->tokenToString = {
         {LET, "let"},
+        {SEMICOLON, ";"},
         {VARIABLE, "variable"},
         {STRING, "string"},
         {FLOAT, "float"},
