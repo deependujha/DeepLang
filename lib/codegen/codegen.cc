@@ -27,16 +27,72 @@ llvm::Value* CodeGen::LogErrorV(const char* Str) {
 }
 
 llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
-    // Example: return nullptr if not yet implemented.
+    enum ExprAstType : int8_t {
+        NumberExpr,
+        VariableExpr,
+        BinaryExpr,
+        CallExpr,
+        Invalid,
+    };
+
+    ExprAstType e = Invalid;
+    if (typeid(exprAst) == typeid(ast::BinaryExprAST)) {
+        e = BinaryExpr;
+    } else if (typeid(exprAst) == typeid(ast::NumberExprAST)) {
+        e = NumberExpr;
+    } else if (typeid(exprAst) == typeid(ast::VariableExprAST)) {
+        e = VariableExpr;
+    } else if (typeid(exprAst) == typeid(ast::CallExprAST)) {
+        e = CallExpr;
+    }
+
+    switch (e) {
+        default:
+            return nullptr;
+        case NumberExpr: {
+            // Dynamic cast to derived class
+            const auto* numExpr =
+                dynamic_cast<const ast::NumberExprAST*>(&exprAst);
+            if (numExpr) {
+                return codegen(*numExpr);
+            }
+            break;
+        }
+        case BinaryExpr: {
+            const auto* binExpr =
+                dynamic_cast<const ast::BinaryExprAST*>(&exprAst);
+            if (binExpr) {
+                return codegen(*binExpr);
+            }
+            break;
+        }
+        case VariableExpr: {
+            const auto* varExpr =
+                dynamic_cast<const ast::VariableExprAST*>(&exprAst);
+            if (varExpr) {
+                return codegen(*varExpr);
+            }
+            break;
+        }
+        case CallExpr: {
+            const auto* callExpr =
+                dynamic_cast<const ast::CallExprAST*>(&exprAst);
+            if (callExpr) {
+                return codegen(*callExpr);
+            }
+            break;
+        }
+    }
+
     return nullptr;
 }
 
 void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
     if (llvm::Function* FnIR = this->codegen(expAst)) {
         if (anonymous) {
-            fprintf(stderr, "Read top-level expression:");
+            fprintf(stderr, "Read top-level expression:\n");
         } else {
-            fprintf(stderr, "Read function definition:");
+            fprintf(stderr, "Read function definition:\n");
         }
         FnIR->print(llvm::errs());
         fprintf(stderr, "\n");

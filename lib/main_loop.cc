@@ -1,16 +1,14 @@
 #include "main_loop.h"
+#include <iostream>
 #include "parser/parser.h"
 
 void MainLoop::run() {
-    fprintf(stderr, "deeplang> ");
-    this->prs->getNextToken();
     while (true) {
-        fprintf(stderr, "deeplang> ");
+        std::cout << "\n===========================================\n";
+        std::cout << "deeplang> ";
+        this->prs->getNextToken();
         switch (this->prs->bt->getTokenEnum()) {
-            // case tok_eof:
-            //     return;
             case lexer::SEMICOLON: // ignore top-level semicolons.
-                prs->getNextToken();
                 break;
             case lexer::FN:
                 this->HandleDefinition();
