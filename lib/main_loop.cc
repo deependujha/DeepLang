@@ -7,7 +7,6 @@ void MainLoop::run() {
         std::cout << "\n===========================================\n";
         std::cout << "deeplang> ";
         this->prs->getNextToken();
-        this->prs->bt->printLn();
         switch (this->prs->bt->getTokenEnum()) {
             case lexer::SEMICOLON: // ignore top-level semicolons.
                 break;

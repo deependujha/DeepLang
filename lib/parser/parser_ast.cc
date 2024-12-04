@@ -55,7 +55,6 @@ std::unique_ptr<ast::ExprAST> Parser::ParseParenExpr() {
 ///   ::= identifier '(' expression* ')'
 std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
     std::string IdName = this->bt->getValue();
-    this->bt->printLn();
 
     this->getNextToken(); // eat identifier.
 
@@ -191,13 +190,10 @@ std::unique_ptr<ast::PrototypeAST> Parser::ParsePrototype() {
 /// definition ::= 'def' prototype expression
 std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
     this->getNextToken(); // eat fn.
-    this->bt->printLn();
     auto Proto = this->ParsePrototype();
     if (!Proto) {
         return nullptr;
     }
-    printf("prototyping done");
-    this->bt->printLn();
     if (auto E = this->ParseExpression()) {
         return std::make_unique<ast::FunctionAST>(
             std::move(Proto), std::move(E));
