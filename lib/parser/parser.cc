@@ -1,4 +1,5 @@
 #include "parser/parser.h"
+#include <iostream>
 #include "lexer/token.h"
 #include "utils/check_type.h"
 
@@ -17,23 +18,26 @@ lexer::BaseToken* Parser::getNextToken() {
 }
 
 lexer::BaseToken* Parser::getTok() {
-    char LastChar = ' ';
     float NumVal = 0;
     std::string IdentifierStr;
 
     // Skip any whitespace.
-    while (isSpace(LastChar)) {
-        LastChar = char(getchar());
+    while (isSpace(this->LastChar) || this->LastChar == '\n' ||
+           this->LastChar == '\t' || this->LastChar == '\r') {
+        this->LastChar = char(getchar());
     }
 
-    if (LastChar == ';') {
+    if (this->LastChar == ';') {
+        this->LastChar = ' ';
         return new lexer::BaseToken(this->tou, lexer::SEMICOLON);
     }
 
-    if (isAlpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
-        IdentifierStr = std::to_string(LastChar);
-        while (isAlphaNumeric((LastChar = char(getchar())))) {
-            IdentifierStr += std::to_string(LastChar);
+    if (isAlpha(this->LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+        IdentifierStr = std::string{this->LastChar};
+        this->LastChar = char(getchar());
+        while (isAlphaNumeric(this->LastChar) || this->LastChar == '_') {
+            IdentifierStr += std::string{this->LastChar};
+            this->LastChar = char(getchar());
         }
 
         if (this->tou->stringToToken.find(IdentifierStr) !=
@@ -47,39 +51,40 @@ lexer::BaseToken* Parser::getTok() {
             this->tou, lexer::VARIABLE, IdentifierStr, NumVal);
     }
 
-    if (isNumeric(LastChar)) { // Number: [0-9.]+
+    if (isNumeric(this->LastChar)) { // Number: [0-9.]+
         std::string NumStr;
         do {
-            NumStr += std::to_string(LastChar);
-            LastChar = char(getchar());
-        } while (isdigit(LastChar) || LastChar == '.');
+            NumStr += std::string{this->LastChar};
+            this->LastChar = char(getchar());
+        } while (isdigit(this->LastChar) || this->LastChar == '.');
 
         NumVal = strtof(NumStr.c_str(), nullptr);
         return new lexer::BaseToken(
             this->tou, lexer::FLOAT, IdentifierStr, NumVal);
     }
 
-    if (LastChar == '#') {
+    if (this->LastChar == '#') {
         // Comment until end of line.
         do {
-            LastChar = char(getchar());
-        } while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
+            this->LastChar = char(getchar());
+        } while (this->LastChar != EOF && this->LastChar != '\n' &&
+                 this->LastChar != '\r');
 
-        if (LastChar != EOF) {
+        if (this->LastChar != EOF) {
             return this->getTok();
         }
     }
 
     // Check for end of file.  Don't eat the EOF.
-    if (LastChar == EOF) {
+    if (this->LastChar == EOF) {
         return new lexer::BaseToken(this->tou, lexer::END_OF_FILE);
     }
 
     // Otherwise, just return the character as its ascii value.
-    // int ThisChar = LastChar;
-    // LastChar = char(getchar());
+    char ThisChar = this->LastChar;
+    this->LastChar = char(getchar());
     return new lexer::BaseToken(
-        this->tou, lexer::OPERATOR, std::string{LastChar});
+        this->tou, lexer::OPERATOR, std::string{ThisChar});
 }
 
 } // namespace parser

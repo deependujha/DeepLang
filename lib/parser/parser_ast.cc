@@ -1,3 +1,4 @@
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -54,19 +55,18 @@ std::unique_ptr<ast::ExprAST> Parser::ParseParenExpr() {
 ///   ::= identifier '(' expression* ')'
 std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
     std::string IdName = this->bt->getValue();
+    this->bt->printLn();
 
     this->getNextToken(); // eat identifier.
 
-    if (this->bt->getTokenEnum() != lexer::OPERATOR &&
-        this->bt->getValue() != "(") { // Simple variable ref.
+    if (this->bt->getValue() != "(") { // Simple variable ref.
         return std::make_unique<ast::VariableExprAST>(IdName);
     }
 
     // Call.
     this->getNextToken(); // eat (
     std::vector<std::unique_ptr<ast::ExprAST>> Args;
-    if (this->bt->getTokenEnum() != lexer::OPERATOR &&
-        this->bt->getValue() != ")") {
+    if (this->bt->getValue() != ")") {
         while (true) {
             if (auto Arg = ParseExpression()) {
                 Args.push_back(std::move(Arg));
@@ -81,6 +81,7 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
 
             if (this->bt->getTokenEnum() != lexer::OPERATOR ||
                 this->bt->getValue() != ",") {
+                this->bt->printLn();
                 return LogError("Expected ')' or ',' in argument list");
             }
             this->getNextToken();
@@ -167,8 +168,14 @@ std::unique_ptr<ast::PrototypeAST> Parser::ParsePrototype() {
     }
 
     std::vector<std::string> ArgNames;
-    while (this->getNextToken()->getTokenEnum() == lexer::VARIABLE) {
+    this->getNextToken();
+    while (this->bt->getTokenEnum() == lexer::VARIABLE) {
         ArgNames.push_back(this->bt->getValue());
+        this->getNextToken();
+        if (this->bt->getTokenEnum() == lexer::OPERATOR &&
+            this->bt->getValue() == ",") {
+            this->getNextToken();
+        }
     }
     if (this->bt->getTokenEnum() != lexer::OPERATOR ||
         this->bt->getValue() != ")") {
@@ -183,12 +190,14 @@ std::unique_ptr<ast::PrototypeAST> Parser::ParsePrototype() {
 
 /// definition ::= 'def' prototype expression
 std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
-    this->getNextToken(); // eat def.
+    this->getNextToken(); // eat fn.
+    this->bt->printLn();
     auto Proto = this->ParsePrototype();
     if (!Proto) {
         return nullptr;
     }
-
+    printf("prototyping done");
+    this->bt->printLn();
     if (auto E = this->ParseExpression()) {
         return std::make_unique<ast::FunctionAST>(
             std::move(Proto), std::move(E));

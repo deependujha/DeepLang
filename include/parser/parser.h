@@ -27,6 +27,7 @@ class Parser {
     lexer::TokenOperatorUtils* tou;
     lexer::BaseToken* getTok();
     OperatorPrecedence* op;
+    char LastChar = ' ';
 
   public:
     Parser(lexer::TokenOperatorUtils* tou)
