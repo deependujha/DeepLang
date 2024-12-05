@@ -111,8 +111,10 @@ llvm::Value* CodeGen::codegen(const ast::IfExprAST& ifAst) {
     // the end of the function.
     llvm::BasicBlock* ThenBB =
         llvm::BasicBlock::Create(*TheContext, "then", TheFunction);
-    llvm::BasicBlock* ElseBB = llvm::BasicBlock::Create(*TheContext, "else");
-    llvm::BasicBlock* MergeBB = llvm::BasicBlock::Create(*TheContext, "ifcont");
+    llvm::BasicBlock* ElseBB =
+        llvm::BasicBlock::Create(*TheContext, "else", TheFunction);
+    llvm::BasicBlock* MergeBB =
+        llvm::BasicBlock::Create(*TheContext, "ifcont", TheFunction);
 
     this->Builder->CreateCondBr(CondV, ThenBB, ElseBB);
 
@@ -130,7 +132,7 @@ llvm::Value* CodeGen::codegen(const ast::IfExprAST& ifAst) {
     ThenBB = this->Builder->GetInsertBlock();
 
     // Emit else block.
-    TheFunction->insert(TheFunction->end(), ElseBB);
+    // TheFunction->insert(TheFunction->end(), ElseBB);
     this->Builder->SetInsertPoint(ElseBB);
 
     llvm::Value* ElseV = this->codegen(*ifAst.then[1]);
@@ -144,7 +146,7 @@ llvm::Value* CodeGen::codegen(const ast::IfExprAST& ifAst) {
     ElseBB = this->Builder->GetInsertBlock();
 
     // Emit merge block.
-    TheFunction->insert(TheFunction->end(), MergeBB);
+    // TheFunction->insert(TheFunction->end(), MergeBB);
     this->Builder->SetInsertPoint(MergeBB);
     llvm::PHINode* PN =
         Builder->CreatePHI(llvm::Type::getDoubleTy(*TheContext), 2, "iftmp");

@@ -89,10 +89,9 @@ class IfExprAST : public ExprAST {
 
 /// LoopExprAST - Expression class for for/in.
 class LoopExprAST : public ExprAST {
+  public:
     std::string VarName;
     std::unique_ptr<ExprAST> Start, End, Step, Body;
-
-  public:
     LoopExprAST(
         std::string VarName,
         std::unique_ptr<ExprAST> Start,
