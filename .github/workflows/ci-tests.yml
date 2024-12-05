@@ -32,11 +32,6 @@ jobs:
         echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/runner/.bashrc
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
         brew install gcc
-
-
-    # Step to install LLVM and Clang
-    - name: Install LLVM and Clang
-      run: |
         brew install llvm 
 
 
