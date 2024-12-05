@@ -27,6 +27,8 @@ jobs:
     - name: Install LLVM
       run: |
         sudo apt-get install llvm -y
+        echo "llvm config version ${llvm-config --version}"
+        echo "llvm config version `llvm-config --version`"
 
 
     - name: Configure CMake
