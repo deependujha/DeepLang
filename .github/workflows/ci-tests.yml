@@ -28,6 +28,10 @@ jobs:
       run: |
         sudo apt-get install build-essential procps curl file git
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        echo >> /home/runner/.bashrc
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/runner/.bashrc
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        brew install gcc
 
 
     # Step to install LLVM and Clang
