@@ -117,6 +117,8 @@ std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
             return this->ParseParenExpr();
         case lexer::IF:
             return this->ParseIfExpr();
+        case lexer::LOOP:
+            return this->ParseLoopExpr();
     }
 }
 
