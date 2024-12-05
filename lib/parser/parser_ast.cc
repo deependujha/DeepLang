@@ -36,6 +36,12 @@ std::unique_ptr<ast::ExprAST> Parser::ParseNumberExpr() {
 }
 /// parenexpr ::= "(" expression ")"
 std::unique_ptr<ast::ExprAST> Parser::ParseParenExpr() {
+    if (this->bt->getTokenEnum() != lexer::OPERATOR ||
+        this->bt->getValue() != "(") {
+        this->bt->printLn();
+        std::cout << "not a paren expression\n";
+        return nullptr;
+    }
     this->getNextToken(); // eat (.
     auto V = this->ParseExpression();
     if (!V) {
@@ -44,6 +50,7 @@ std::unique_ptr<ast::ExprAST> Parser::ParseParenExpr() {
 
     if (this->bt->getTokenEnum() != lexer::OPERATOR ||
         this->bt->getValue() != ")") {
+        this->bt->printLn();
         return LogError("expected ')'");
     }
     this->getNextToken(); // eat ).
@@ -100,13 +107,16 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
 std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
     switch (this->bt->getTokenEnum()) {
         default:
+            this->bt->printLn();
             return LogError("unknown token when expecting an expression");
         case lexer::VARIABLE:
-            return ParseIdentifierExpr();
+            return this->ParseIdentifierExpr();
         case lexer::FLOAT:
-            return ParseNumberExpr();
+            return this->ParseNumberExpr();
         case lexer::OPERATOR:
-            return ParseParenExpr();
+            return this->ParseParenExpr();
+        case lexer::IF:
+            return this->ParseIfExpr();
     }
 }
 
