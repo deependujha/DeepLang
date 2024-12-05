@@ -1,4 +1,5 @@
 #include "main_loop.h"
+#include <exception>
 #include <iostream>
 #include "parser/parser.h"
 
@@ -10,6 +11,9 @@ void MainLoop::run() {
         switch (this->prs->bt->getTokenEnum()) {
             case (lexer::OPERATOR): // ignore top-level semicolons.
                 std::cout << "lexer operator semicolon\n";
+                if (this->prs->bt->getValue() != ";") {
+                    std::cout << "expected semicolon\n";
+                }
                 break;
             case lexer::FN:
                 this->HandleDefinition();

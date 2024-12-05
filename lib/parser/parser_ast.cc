@@ -271,7 +271,6 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIfExpr() {
 
     if (this->bt->getTokenEnum() != lexer::ELSE) {
         this->bt->printLn();
-        std::cout << "no else block found. bye bye\n";
         return std::make_unique<ast::IfExprAST>(
             std::move(cond), std::move(then));
     }
@@ -281,13 +280,11 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIfExpr() {
           this->bt->getValue() == "{")) {
         return LogError("expected '{'");
     }
-    std::cout << "going to parse else block\n";
     this->getNextToken();
     auto Else = this->ParseExpression();
     if (!Else) {
         return nullptr;
     }
-    std::cout << "else expression consumed\n";
     then.push_back(std::move(Else)); // last else block goes in then expr
     if (!(this->bt->getTokenEnum() == lexer::OPERATOR &&
           this->bt->getValue() == ";")) {
@@ -300,8 +297,6 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIfExpr() {
         this->bt->printLn();
         return LogError("expected '}'");
     }
-    std::cout << "all if else code consumed and currTok: "
-              << this->bt->getToken() << " " << this->bt->getValue() << "\n";
     return std::make_unique<ast::IfExprAST>(std::move(cond), std::move(then));
 }
 
