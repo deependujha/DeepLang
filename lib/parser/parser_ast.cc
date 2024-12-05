@@ -102,11 +102,13 @@ std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
         default:
             return LogError("unknown token when expecting an expression");
         case lexer::VARIABLE:
-            return ParseIdentifierExpr();
+            return this->ParseIdentifierExpr();
         case lexer::FLOAT:
-            return ParseNumberExpr();
+            return this->ParseNumberExpr();
         case lexer::OPERATOR:
-            return ParseParenExpr();
+            return this->ParseParenExpr();
+        case lexer::IF:
+            return this->ParseIfExpr();
     }
 }
 
@@ -211,6 +213,56 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseTopLevelExpr() {
             std::move(Proto), std::move(E));
     }
     return nullptr;
+}
+
+std::unique_ptr<ast::ExprAST> Parser::ParseIfExpr() {
+    typedef std::unique_ptr<ast::ExprAST> exprType;
+    std::vector<exprType> cond;
+    std::vector<exprType> then;
+
+    this->getNextToken(); // eat the if.
+
+    bool inIfElseIfLadder = true;
+
+    while (inIfElseIfLadder) {
+        // condition.
+        auto Cond = ParseExpression();
+        if (!Cond) {
+            return nullptr;
+        }
+        cond.push_back(std::move(Cond));
+
+        if (this->getTok()->getTokenEnum() != lexer::OPERATOR ||
+            this->getTok()->getValue() != "{") {
+            return LogError("expected '{'");
+        }
+        this->getNextToken(); // eat the {
+
+        auto Then = this->ParseExpression();
+        if (!Then) {
+            return nullptr;
+        }
+        then.push_back(std::move(Then));
+
+        if (this->getTok()->getTokenEnum() != lexer::ELIF) {
+            inIfElseIfLadder = false;
+        }
+
+        this->getNextToken(); // eat elif
+    }
+
+    if (this->getTok()->getTokenEnum() != lexer::ELSE) {
+        return std::make_unique<ast::IfExprAST>(
+            std::move(cond), std::move(then));
+    }
+
+    auto Else = this->ParseExpression();
+    if (!Else) {
+        return nullptr;
+    }
+    then.push_back(std::move(Else)); // last else block goes in then expr
+
+    return std::make_unique<ast::IfExprAST>(std::move(cond), std::move(then));
 }
 
 } // namespace parser

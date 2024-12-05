@@ -77,6 +77,9 @@ class Parser {
 
     /// toplevelexpr ::= expression
     std::unique_ptr<ast::FunctionAST> ParseTopLevelExpr();
+
+    /// ifexpr ::= 'if' expression 'then' expression 'else' expression
+    std::unique_ptr<ast::ExprAST> ParseIfExpr();
 };
 
 } // namespace parser
