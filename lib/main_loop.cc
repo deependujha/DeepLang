@@ -10,7 +10,6 @@ void MainLoop::run() {
         this->prs->getNextToken();
         switch (this->prs->bt->getTokenEnum()) {
             case (lexer::OPERATOR): // ignore top-level semicolons.
-                std::cout << "lexer operator semicolon\n";
                 if (this->prs->bt->getValue() != ";") {
                     std::cout << "expected semicolon\n";
                 }
