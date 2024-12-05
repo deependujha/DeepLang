@@ -2,6 +2,7 @@ set(parser
     parser.cc
     parser_ast.cc
     conditional_parser.cc
+    loop_parser.cc
 )
 
 add_library(${PARSER_LIBRARY_NAME} ${parser})

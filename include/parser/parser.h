@@ -81,6 +81,10 @@ class Parser {
 
     /// ifexpr ::= 'if' expression 'then' expression 'else' expression
     std::unique_ptr<ast::ExprAST> ParseIfExpr();
+
+    /// forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in'
+    /// expression
+    std::unique_ptr<ast::ExprAST> ParseLoopExpr();
 };
 
 } // namespace parser

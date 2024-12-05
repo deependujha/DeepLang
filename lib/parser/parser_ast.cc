@@ -109,14 +109,16 @@ std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
         default:
             this->bt->printLn();
             return LogError("unknown token when expecting an expression");
-        case lexer::VARIABLE:
-            return this->ParseIdentifierExpr();
         case lexer::FLOAT:
             return this->ParseNumberExpr();
         case lexer::OPERATOR:
             return this->ParseParenExpr();
         case lexer::IF:
             return this->ParseIfExpr();
+        case lexer::LOOP:
+            return this->ParseLoopExpr();
+        case lexer::VARIABLE:
+            return this->ParseIdentifierExpr();
     }
 }
 

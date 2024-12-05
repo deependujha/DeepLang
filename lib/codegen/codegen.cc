@@ -1,4 +1,5 @@
 #include "codegen/codegen.h"
+#include <iostream>
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -32,6 +33,8 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         VariableExpr,
         BinaryExpr,
         CallExpr,
+        IfExpr,
+        LoopExpr,
         Invalid,
     };
 
@@ -44,6 +47,10 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         e = VariableExpr;
     } else if (typeid(exprAst) == typeid(ast::CallExprAST)) {
         e = CallExpr;
+    } else if (typeid(exprAst) == typeid(ast::IfExprAST)) {
+        e = IfExpr;
+    } else if (typeid(exprAst) == typeid(ast::LoopExprAST)) {
+        e = LoopExpr;
     }
 
     switch (e) {
@@ -79,6 +86,22 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
                 dynamic_cast<const ast::CallExprAST*>(&exprAst);
             if (callExpr) {
                 return codegen(*callExpr);
+            }
+            break;
+        }
+        case IfExpr: {
+            const auto* conditionalExpr =
+                dynamic_cast<const ast::IfExprAST*>(&exprAst);
+            if (conditionalExpr) {
+                return codegen(*conditionalExpr);
+            }
+            break;
+        }
+        case LoopExpr: {
+            const auto* loopExpr =
+                dynamic_cast<const ast::LoopExprAST*>(&exprAst);
+            if (loopExpr) {
+                return codegen(*loopExpr);
             }
             break;
         }
@@ -131,6 +154,11 @@ llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
         return Builder->CreateFMul(L, R, "multmp");
     } else if (binAst.Op == "<") {
         L = Builder->CreateFCmpULT(L, R, "cmptmp");
+        // Convert bool 0/1 to double 0.0 or 1.0
+        return Builder->CreateUIToFP(
+            L, llvm::Type::getDoubleTy(*this->TheContext), "booltmp");
+    } else if (binAst.Op == ">") {
+        L = Builder->CreateFCmpUGT(L, R, "cmptmp");
         // Convert bool 0/1 to double 0.0 or 1.0
         return Builder->CreateUIToFP(
             L, llvm::Type::getDoubleTy(*this->TheContext), "booltmp");
