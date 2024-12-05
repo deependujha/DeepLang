@@ -53,6 +53,11 @@ std::unique_ptr<ast::ExprAST> Parser::ParseLoopExpr() {
         }
     }
 
+    if (this->bt->getValue() != ")") {
+        return LogError("expected ')'");
+    }
+    this->getNextToken();
+
     if (this->bt->getValue() != "{") {
         return LogError("parsing loop: expected '{' for body of loop");
     }
@@ -63,7 +68,15 @@ std::unique_ptr<ast::ExprAST> Parser::ParseLoopExpr() {
         return nullptr;
     }
 
-    return std::make_unique<ast::ForExprAST>(
+    if (this->bt->getValue() != ";") {
+        return LogError("parsing loop: expected ';' for return value of loop");
+    }
+    this->getNextToken();
+    if (this->bt->getValue() != "}") {
+        return LogError("parsing loop: expected '{' for body of loop");
+    }
+
+    return std::make_unique<ast::LoopExprAST>(
         IdName,
         std::move(Start),
         std::move(End),
