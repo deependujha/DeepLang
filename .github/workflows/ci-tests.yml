@@ -24,18 +24,15 @@ jobs:
       with:
         submodules: recursive  # Ensures submodules are initialized and updated
     
-    - name: Set up LLVM repository
+    - name: Install brew
       run: |
-        sudo apt update
-        sudo apt install -y wget gnupg
-        echo "deb http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-        echo "deb-src http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
-        sudo apt-get update
+        sudo apt-get install build-essential procps curl file git
+
 
     # Step to install LLVM and Clang
     - name: Install LLVM and Clang
       run: |
-        sudo apt install -y llvm-19 clang-19
+        brew install llvm 
 
 
     - name: Configure CMake
