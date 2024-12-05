@@ -90,8 +90,7 @@ namespace codegen {
 // }
 
 llvm::Value* CodeGen::codegen(const ast::IfExprAST& ifAst) {
-    if (!(ifAst.cond.size() > 1 &&
-          ifAst.then.size() - ifAst.cond.size() <= 1)) {
+    if (!(!ifAst.cond.empty() && ifAst.then.size() - ifAst.cond.size() <= 1)) {
         LogErrorV("invalid if-expression AST");
         return nullptr;
     }
