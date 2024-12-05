@@ -24,10 +24,19 @@ jobs:
       with:
         submodules: recursive  # Ensures submodules are initialized and updated
     
-    - name: Install LLVM
+    - name: Set up LLVM repository
       run: |
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo apt-get install libllvm-19-ocaml-dev libllvm19 llvm-19 llvm-19-dev llvm-19-doc llvm-19-examples llvm-19-runtime -y
+        sudo apt update
+        sudo apt install -y wget gnupg
+        echo "deb http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        echo "deb-src http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
+        sudo apt update
+
+    # Step to install LLVM and Clang
+    - name: Install LLVM and Clang
+      run: |
+        sudo apt install -y llvm-19 clang-19
 
 
     - name: Configure CMake
