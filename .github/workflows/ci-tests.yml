@@ -30,7 +30,7 @@ jobs:
         sudo apt install -y wget gnupg
         echo "deb http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
         echo "deb-src http://apt.llvm.org/oracular/ llvm-toolchain-oracular-19 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
-        sudo apt update
+        sudo apt-get update
 
     # Step to install LLVM and Clang
     - name: Install LLVM and Clang
