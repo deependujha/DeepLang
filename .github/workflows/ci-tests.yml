@@ -26,7 +26,7 @@ jobs:
     
     - name: Install LLVM
       run: |
-        sudo apt-get install llvm -y
+        sudo apt-get install llvm-19 -y
         echo "llvm config version ${llvm-config --version}"
         echo "llvm config version `llvm-config --version`"
 
