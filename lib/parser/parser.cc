@@ -12,9 +12,8 @@ int parser::OperatorPrecedence::GetTokPrecedence(const std::string op) {
     return TokPrec;
 }
 
-lexer::BaseToken* Parser::getNextToken() {
+void Parser::getNextToken() {
     this->bt = this->getTok();
-    return this->bt;
 }
 
 lexer::BaseToken* Parser::getTok() {
@@ -25,11 +24,6 @@ lexer::BaseToken* Parser::getTok() {
     while (isSpace(this->LastChar) || this->LastChar == '\n' ||
            this->LastChar == '\t' || this->LastChar == '\r') {
         this->LastChar = char(getchar());
-    }
-
-    if (this->LastChar == ';') {
-        this->LastChar = ' ';
-        return new lexer::BaseToken(this->tou, lexer::SEMICOLON);
     }
 
     if (isAlpha(this->LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
@@ -81,10 +75,21 @@ lexer::BaseToken* Parser::getTok() {
     }
 
     // Otherwise, just return the character as its ascii value.
-    char ThisChar = this->LastChar;
+    std::string opr = std::string{this->LastChar};
+    // check if opr is closing/starting symbol
+    if (opr == "{" || opr == "}" || opr == "[" || opr == "]" || opr == ";" ||
+        opr == ")") {
+        this->LastChar = ' ';
+        return new lexer::BaseToken(this->tou, lexer::OPERATOR, opr);
+    }
     this->LastChar = char(getchar());
-    return new lexer::BaseToken(
-        this->tou, lexer::OPERATOR, std::string{ThisChar});
+    // while char is neither alphanumeric nor ; nor ()
+    while (!isAlphaNumeric(this->LastChar) && !isSpace(this->LastChar)) {
+        opr += this->LastChar;
+        this->LastChar = char(getchar());
+    }
+
+    return new lexer::BaseToken(this->tou, lexer::OPERATOR, opr);
 }
 
 } // namespace parser

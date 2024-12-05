@@ -80,10 +80,9 @@ class IfExprAST : public ExprAST {
     typedef std::unique_ptr<ExprAST> exprType;
     // vector of condition and execute
     // (cond, then), (cond, then), (then) => (if then), (elif then), (else)
+  public:
     std::vector<exprType> cond;
     std::vector<exprType> then;
-
-  public:
     IfExprAST(std::vector<exprType> cond, std::vector<exprType> then)
         : cond(std::move(cond)), then(std::move(then)) {}
 };

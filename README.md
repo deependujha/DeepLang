@@ -36,3 +36,5 @@ echo "Pre-commit checks complete."
 ```
 
 </details>
+
+if(4>3){4;}elif(5>7){3;}else{4*3;}

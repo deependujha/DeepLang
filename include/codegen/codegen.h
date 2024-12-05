@@ -44,6 +44,7 @@ class CodeGen {
     llvm::Value* codegen(const ast::CallExprAST& calAst);
     llvm::Function* codegen(const ast::PrototypeAST& protoAst);
     llvm::Function* codegen(const ast::FunctionAST& fnAst);
+    llvm::Function* codegen(const ast::IfExprAST& fnAst);
 
     void printIR(const ast::FunctionAST& expAst, bool anonymous = false);
 };

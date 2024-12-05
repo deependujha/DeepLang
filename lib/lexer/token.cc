@@ -69,7 +69,6 @@ TokenOperatorUtils::TokenOperatorUtils() {
 void TokenOperatorUtils::_initialize() {
     this->tokenToString = {
         {LET, "let"},
-        {SEMICOLON, ";"},
         {VARIABLE, "variable"},
         {STRING, "string"},
         {FLOAT, "float"},

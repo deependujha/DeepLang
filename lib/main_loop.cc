@@ -8,7 +8,8 @@ void MainLoop::run() {
         std::cout << "deeplang> ";
         this->prs->getNextToken();
         switch (this->prs->bt->getTokenEnum()) {
-            case lexer::SEMICOLON: // ignore top-level semicolons.
+            case (lexer::OPERATOR): // ignore top-level semicolons.
+                std::cout << "lexer operator semicolon\n";
                 break;
             case lexer::FN:
                 this->HandleDefinition();

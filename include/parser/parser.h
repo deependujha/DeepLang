@@ -10,6 +10,7 @@ class OperatorPrecedence {
   private:
     std::map<std::string, int> BinopPrecedence = {
         {"<", 10},
+        {">", 10},
         {"+", 20},
         {"-", 20},
         {"*", 40}, // highest.
@@ -34,7 +35,7 @@ class Parser {
         : tou(tou), op(new OperatorPrecedence()) {}
     lexer::BaseToken* bt{};
 
-    lexer::BaseToken* getNextToken();
+    void getNextToken();
 
     /// LogError* - These are little helper functions for error handling.
     std::unique_ptr<ast::ExprAST> LogError(const char* Str);
