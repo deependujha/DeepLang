@@ -155,7 +155,7 @@ llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
     } else if (binAst.Op == "/") {
         return Builder->CreateFDiv(L, R, "divtmp");
     } else if (binAst.Op == "%") {
-        return Builder->CreateFRem(L, R, "divtmp");
+        return Builder->CreateFRem(L, R, "remtmp");
     } else if (binAst.Op == "<") {
         L = Builder->CreateFCmpULT(L, R, "cmptmp");
         // Convert bool 0/1 to double 0.0 or 1.0

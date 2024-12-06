@@ -9,13 +9,13 @@ namespace parser {
 class OperatorPrecedence {
   private:
     std::map<std::string, int> BinopPrecedence = {
-        {"<", 10},
-        {">", 10},
-        {"+", 20},
-        {"-", 20},
-        {"*", 40}, // highest.
-        {"/", 40}, // highest.
-        {"%", 40}, // remainder.
+        {"<", 10}, // less than
+        {">", 10}, // greater than
+        {"+", 20}, // addition
+        {"-", 20}, // difference (subtract)
+        {"*", 40}, // multiply
+        {"/", 40}, // divide
+        {"%", 40}, // modulo (remainder)
     };
 
   public:
