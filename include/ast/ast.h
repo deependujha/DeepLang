@@ -67,12 +67,14 @@ class PrototypeAST {
 class FunctionAST {
   public:
     std::unique_ptr<PrototypeAST> Proto;
-    std::unique_ptr<ExprAST> Body;
+    std::vector<std::unique_ptr<ExprAST>> Body;
+    std::unique_ptr<ExprAST> Ret;
 
     FunctionAST(
         std::unique_ptr<PrototypeAST> Proto,
-        std::unique_ptr<ExprAST> Body)
-        : Proto(std::move(Proto)), Body(std::move(Body)) {}
+        std::vector<std::unique_ptr<ExprAST>> Body,
+        std::unique_ptr<ExprAST> Ret = nullptr)
+        : Proto(std::move(Proto)), Body(std::move(Body)), Ret(std::move(Ret)) {}
 };
 
 /// IfExprAST - Expression class for if/then/else.
@@ -103,6 +105,16 @@ class LoopExprAST : public ExprAST {
           End(std::move(End)),
           Step(std::move(Step)),
           Body(std::move(Body)) {}
+};
+
+/// VarExprAST - Expression class for var/in
+class VarExprAST : public ExprAST {
+  public:
+    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
+    // std::unique_ptr<ExprAST> Body;
+    VarExprAST(
+        std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames)
+        : VarNames(std::move(VarNames)) {}
 };
 
 } // namespace ast

@@ -13,16 +13,23 @@
 
 namespace codegen {
 llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
+    llvm::Function* TheFunction = Builder->GetInsertBlock()->getParent();
+
+    // Create an alloca for the variable in the entry block.
+    llvm::AllocaInst* Alloca =
+        this->CreateEntryBlockAlloca(TheFunction, loopAst.VarName);
+
     // Emit the start code first, without 'variable' in scope.
     llvm::Value* StartVal = this->codegen(*loopAst.Start);
     if (!StartVal) {
         return nullptr;
     }
 
+    // Store the value into the alloca.
+    this->Builder->CreateStore(StartVal, Alloca);
+
     // Make the new basic block for the loop header, inserting after current
     // block.
-    llvm::Function* TheFunction = this->Builder->GetInsertBlock()->getParent();
-    llvm::BasicBlock* PreheaderBB = this->Builder->GetInsertBlock();
     llvm::BasicBlock* LoopBB =
         llvm::BasicBlock::Create(*TheContext, "loop", TheFunction);
 
@@ -32,15 +39,10 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
     // Start insertion in LoopBB.
     this->Builder->SetInsertPoint(LoopBB);
 
-    // Start the PHI node with an entry for Start.
-    llvm::PHINode* Variable = Builder->CreatePHI(
-        llvm::Type::getDoubleTy(*TheContext), 2, loopAst.VarName);
-    Variable->addIncoming(StartVal, PreheaderBB);
-
     // Within the loop, the variable is defined equal to the PHI node.  If it
     // shadows an existing variable, we have to restore it, so save it now.
-    llvm::Value* OldVal = this->NamedValues[loopAst.VarName];
-    this->NamedValues[loopAst.VarName] = Variable;
+    llvm::AllocaInst* OldVal = this->NamedValues.back()[loopAst.VarName];
+    this->NamedValues.back()[loopAst.VarName] = Alloca;
 
     // Emit the body of the loop.  This, like any other expr, can change the
     // current BB.  Note that we ignore the value computed by the body, but
@@ -61,13 +63,19 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
         StepVal = llvm::ConstantFP::get(*TheContext, llvm::APFloat(1.0));
     }
 
-    llvm::Value* NextVar = Builder->CreateFAdd(Variable, StepVal, "nextvar");
-
     // Compute the end condition.
     llvm::Value* EndCond = this->codegen(*loopAst.End);
     if (!EndCond) {
         return nullptr;
     }
+
+    // Reload, increment, and restore the alloca.  This handles the case where
+    // the body of the loop mutates the variable.
+    llvm::Value* CurVar = this->Builder->CreateLoad(
+        Alloca->getAllocatedType(), Alloca, loopAst.VarName.c_str());
+    llvm::Value* NextVar =
+        this->Builder->CreateFAdd(CurVar, StepVal, "nextvar");
+    this->Builder->CreateStore(NextVar, Alloca);
 
     // Convert condition to a bool by comparing non-equal to 0.0.
     EndCond = Builder->CreateFCmpONE(
@@ -76,7 +84,6 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
         "loopcond");
 
     // Create the "after loop" block and insert it.
-    llvm::BasicBlock* LoopEndBB = this->Builder->GetInsertBlock();
     llvm::BasicBlock* AfterBB =
         llvm::BasicBlock::Create(*TheContext, "afterloop", TheFunction);
 
@@ -86,14 +93,11 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
     // Any new code will be inserted in AfterBB.
     this->Builder->SetInsertPoint(AfterBB);
 
-    // Add a new entry to the PHI node for the backedge.
-    Variable->addIncoming(NextVar, LoopEndBB);
-
     // Restore the unshadowed variable.
     if (OldVal) {
-        NamedValues[loopAst.VarName] = OldVal;
+        this->NamedValues.back()[loopAst.VarName] = OldVal;
     } else {
-        NamedValues.erase(loopAst.VarName);
+        this->NamedValues.back().erase(loopAst.VarName);
     }
 
     // for expr always returns 0.0.

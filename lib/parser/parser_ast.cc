@@ -119,6 +119,8 @@ std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
             return this->ParseLoopExpr();
         case lexer::VARIABLE:
             return this->ParseIdentifierExpr();
+        case lexer::LET:
+            return this->ParseVarExpr();
     }
 }
 
@@ -206,9 +208,39 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
     if (!Proto) {
         return nullptr;
     }
-    if (auto E = this->ParseExpression()) {
-        return std::make_unique<ast::FunctionAST>(
-            std::move(Proto), std::move(E));
+    std::vector<std::unique_ptr<ast::ExprAST>> Body;
+    std::unique_ptr<ast::ExprAST> Ret = nullptr;
+    while (true) {
+        if (this->bt->getTokenEnum() == lexer::RETURN) {
+            this->getNextToken();
+            if (this->bt->getValue() != ";") {
+                auto E = this->ParseExpression();
+                Ret = std::move(E);
+            }
+
+            // eat ';' and '}' and return
+            if (this->bt->getValue() != ";") {
+                std::cout << "expected ';'\n";
+                return nullptr;
+            }
+            this->getNextToken();
+            if (this->bt->getValue() != "}") {
+                std::cout << "expected '}'\n";
+                return nullptr;
+            }
+            this->getNextToken();
+            return std::make_unique<ast::FunctionAST>(
+                std::move(Proto), std::move(Body), std::move(Ret));
+        }
+        auto E = this->ParseExpression();
+        Body.push_back(std::move(E));
+
+        // eat ';'
+        if (this->bt->getValue() != ";") {
+            std::cout << "expected ';'\n";
+            return nullptr;
+        }
+        this->getNextToken();
     }
     return nullptr;
 }
@@ -216,11 +248,13 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
 /// toplevelexpr ::= expression
 std::unique_ptr<ast::FunctionAST> Parser::ParseTopLevelExpr() {
     if (auto E = this->ParseExpression()) {
+        std::vector<std::unique_ptr<ast::ExprAST>> e;
+        e.push_back(std::move(E));
         // Make an anonymous proto.
         auto Proto = std::make_unique<ast::PrototypeAST>(
             "__anon_expr", std::vector<std::string>());
         return std::make_unique<ast::FunctionAST>(
-            std::move(Proto), std::move(E));
+            std::move(Proto), std::move(e), nullptr);
     }
     return nullptr;
 }

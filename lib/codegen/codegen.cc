@@ -1,5 +1,6 @@
 #include "codegen/codegen.h"
 #include <iostream>
+#include <string>
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -20,6 +21,8 @@ void CodeGen::initializeModule() {
 
     // Create a new builder for the module.
     this->Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
+
+    add_new_namedValue();
 }
 
 llvm::Value* CodeGen::LogErrorV(const char* Str) {
@@ -35,22 +38,32 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         CallExpr,
         IfExpr,
         LoopExpr,
+        VarExpr,
         Invalid,
     };
 
     ExprAstType e = Invalid;
     if (typeid(exprAst) == typeid(ast::BinaryExprAST)) {
+        std::cout << "binary expr\n";
         e = BinaryExpr;
     } else if (typeid(exprAst) == typeid(ast::NumberExprAST)) {
         e = NumberExpr;
+        std::cout << "num expr\n";
     } else if (typeid(exprAst) == typeid(ast::VariableExprAST)) {
         e = VariableExpr;
+        std::cout << "vari expr\n";
     } else if (typeid(exprAst) == typeid(ast::CallExprAST)) {
         e = CallExpr;
+        std::cout << "call expr\n";
     } else if (typeid(exprAst) == typeid(ast::IfExprAST)) {
         e = IfExpr;
+        std::cout << "if expr\n";
     } else if (typeid(exprAst) == typeid(ast::LoopExprAST)) {
         e = LoopExpr;
+        std::cout << "loop expr\n";
+    } else if (typeid(exprAst) == typeid(ast::VarExprAST)) {
+        e = VarExpr;
+        std::cout << "VarExpr expr\n";
     }
 
     switch (e) {
@@ -105,6 +118,14 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
             }
             break;
         }
+        case VarExpr: {
+            const auto* varExpr =
+                dynamic_cast<const ast::VarExprAST*>(&exprAst);
+            if (varExpr) {
+                return codegen(*varExpr);
+            }
+            break;
+        }
     }
 
     return nullptr;
@@ -131,22 +152,62 @@ llvm::Value* CodeGen::codegen(const ast::NumberExprAST& numAst) {
 }
 
 llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
-    // Look this variable up in the function.
-    llvm::Value* V = this->NamedValues[varAst.Name];
-    if (!V) {
-        return LogErrorV("Unknown variable name");
+    // print all the keys of namedValues
+    llvm::AllocaInst* meow = nullptr;
+    for (auto& e : this->NamedValues.back()) {
+        std::cout << "namedvalue: " << e.first << " " << e.second << "\n";
     }
-    return V;
+    std::string myname = varAst.Name;
+    std::cout << "variable expression codegen" << myname << "\n";
+
+    if (this->NamedValues.back().find(myname) !=
+        this->NamedValues.back().end()) {
+        meow = this->NamedValues.back()[myname];
+    } else {
+        std::cerr << "Variable " << myname << " not found in NamedValues.\n";
+        return nullptr; // Or handle the error appropriately
+    }
+    if (!meow) {
+        std::string errMsg = "Unknown variable name: " + varAst.Name;
+        // print all the keys of namedValues
+        for (auto& e : this->NamedValues.back()) {
+            std::cout << "namedvalue: " << e.first << " " << e.second << "\n";
+        }
+        return LogErrorV(errMsg.c_str());
+    }
+    // Load the value.
+    return Builder->CreateLoad(
+        meow->getAllocatedType(), meow, varAst.Name.c_str());
 }
 
 llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
-    llvm::Value* L = this->codegen(*binAst.LHS);
+    llvm::Value* L = nullptr;
+    if (binAst.Op != "=") {
+        L = this->codegen(*binAst.LHS);
+    }
     llvm::Value* R = this->codegen(*binAst.RHS);
     if (!L || !R) {
         return nullptr;
     }
+    if (binAst.Op == "=") {
+        // This assume we're building without RTTI because LLVM builds that way
+        // by
+        // default. If you build LLVM with RTTI this can be changed to a
+        // dynamic_cast for automatic error checking.
+        ast::VariableExprAST* LHSE =
+            static_cast<ast::VariableExprAST*>(binAst.LHS.get());
+        if (!LHSE) {
+            return LogErrorV("destination of '=' must be a variable");
+        }
+        // Look up the name.
+        llvm::Value* Variable = this->NamedValues.back()[LHSE->Name];
+        if (!Variable) {
+            return LogErrorV("Unknown variable name");
+        }
 
-    if (binAst.Op == "+") {
+        Builder->CreateStore(R, Variable);
+        return R;
+    } else if (binAst.Op == "+") {
         return Builder->CreateFAdd(L, R, "addtmp");
     } else if (binAst.Op == "-") {
         return Builder->CreateFSub(L, R, "subtmp");
@@ -234,23 +295,62 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     this->Builder->SetInsertPoint(BB);
 
     // Record the function arguments in the NamedValues map.
-    this->NamedValues.clear();
+    this->add_new_namedValue();
+    std::cout << "in function codegen\n";
     for (auto& Arg : TheFunction->args()) {
-        this->NamedValues[std::string(Arg.getName())] = &Arg;
+        // Create an alloca for this variable.
+        llvm::AllocaInst* Alloca = this->CreateEntryBlockAlloca(
+            TheFunction, std::string(Arg.getName()));
+
+        // Store the initial value into the alloca.
+        Builder->CreateStore(&Arg, Alloca);
+
+        // Add arguments to variable symbol table.
+        this->NamedValues.back()[std::string(Arg.getName())] = Alloca;
     }
 
-    if (llvm::Value* RetVal = this->codegen(*fnAst.Body)) {
-        // Finish off the function.
-        this->Builder->CreateRet(RetVal);
+    // Generate code for each body expression.
+    for (size_t i = 0; i < fnAst.Body.size(); ++i) {
+        llvm::Value* BodyVal = this->codegen(*fnAst.Body[i]);
 
-        // Validate the generated code, checking for consistency.
-        llvm::verifyFunction(*TheFunction);
-
-        return TheFunction;
+        // Optionally, handle side effects here. For now, we just ensure the
+        // value is generated.
+        if (!BodyVal) {
+            std::cout << "error generating code for body of the function\n";
+            return nullptr; // Error generating code for body expression.
+        }
     }
+
+    // Generate code for the return expression.
+    llvm::Value* RetVal = nullptr;
+    if (fnAst.Ret) {
+        RetVal = this->codegen(*fnAst.Ret);
+    } else {
+        RetVal = llvm::Constant::getNullValue(llvm::Type::getInt32Ty(
+            *this->TheContext)); // Default return for void.
+    }
+
+    if (!RetVal) {
+        return nullptr; // Error generating return value.
+    }
+
+    // if (llvm::Value* RetVal = this->codegen(*fnAst.Body)) {
+    //     // Finish off the function.
+    //     this->Builder->CreateRet(RetVal);
+
+    //     // Validate the generated code, checking for consistency.
+    //     llvm::verifyFunction(*TheFunction);
+
+    //     return TheFunction;
+    // }
+
+    Builder->CreateRet(RetVal);
+
+    // Validate the generated code, checking for consistency.
+    llvm::verifyFunction(*TheFunction);
 
     // Error reading body, remove function.
-    TheFunction->eraseFromParent();
+    // TheFunction->eraseFromParent();
     return nullptr;
 }
 
