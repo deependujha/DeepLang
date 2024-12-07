@@ -3,6 +3,7 @@ set(codegen
     conditional_codegen.cc
     loop_codegen.cc
     var_expr_codegen.cc
+    function_codegen.cc
 )
 
 add_library(${CODEGEN_LIBRARY_NAME} ${codegen})

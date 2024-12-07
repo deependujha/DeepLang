@@ -39,18 +39,6 @@ llvm::Value* CodeGen::codegen(const ast::VarExprAST& varAst) {
 
         // Remember this binding.
         this->NamedValues.back()[VarName] = Alloca;
-        if (Alloca) {
-            std::cout << "alloca passes condition" << Alloca << "\n";
-        } else {
-            std::cout << "alloca ki maa chud gyi\n";
-        }
-        std::cout << "creating namedvalue for: " << VarName
-                  << "; alloca: " << "\n";
-    }
-
-    // iterate and print all the namedvalue
-    for (auto& e : this->NamedValues.back()) {
-        std::cout << e.first << " " << e.second << "\n";
     }
 
     // Return the nullptr

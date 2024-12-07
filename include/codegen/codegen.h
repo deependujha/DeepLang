@@ -26,6 +26,7 @@ class CodeGen {
     std::unique_ptr<llvm::LLVMContext> TheContext;
     std::unique_ptr<llvm::Module> TheModule;
     std::unique_ptr<llvm::IRBuilder<>> Builder;
+    std::map<std::string, llvm::AllocaInst*> mp;
     std::vector<std::map<std::string, llvm::AllocaInst*>> NamedValues;
 
     void initializeModule();
@@ -37,7 +38,7 @@ class CodeGen {
     virtual ~CodeGen() = default;
     llvm::Value* LogErrorV(const char* Str);
     void add_new_namedValue() {
-        this->NamedValues.emplace_back(); // global variable
+        this->NamedValues.emplace_back(mp); // global variable
     }
 
     virtual llvm::Value* codegen(const ast::ExprAST& exprAst);
