@@ -6,7 +6,7 @@ all:
 	@echo "Run 'make clean' to clean the project"
 
 docs:
-	@cd docs && doxygen
+	@cd docs && doxygen Doxyfile
 
 setup:
 	@mkdir -p build \

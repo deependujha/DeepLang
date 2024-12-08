@@ -4,6 +4,8 @@ set(parser
     conditional_parser.cc
     loop_parser.cc
     var_expression_parser.cc
+    value_parser.cc
+    struct_parser.cc
 )
 
 add_library(${PARSER_LIBRARY_NAME} ${parser})

@@ -3,12 +3,22 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "llvm/IR/Function.h"
 
 namespace ast {
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
   public:
     virtual ~ExprAST() = default;
+};
+
+/// StatementAST - Base class for all statement nodes. `varName = expr;`
+class StatementAST : public ExprAST {
+  public:
+    std::string varName;
+    ExprAST* expr;
+    StatementAST(std::string varName, ExprAST* expr)
+        : varName(std::move(varName)), expr(expr) {}
 };
 
 /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -18,11 +28,59 @@ class NumberExprAST : public ExprAST {
     NumberExprAST(float Val) : Val(Val) {}
 };
 
-/// VariableExprAST - Expression class for referencing a variable, like "a".
-class VariableExprAST : public ExprAST {
+class BooleanExprAST : public ExprAST {
+  public:
+    bool Val;
+    BooleanExprAST(bool Val) : Val(Val) {}
+};
+
+class StringExprAST : public ExprAST {
+  public:
+    std::string Val;
+    StringExprAST(std::string Val) : Val(std::move(Val)) {}
+};
+
+class VectorCreateExprAST : public ExprAST {
+  public:
+    std::string dtype;
+    std::vector<unsigned int> dims;
+    VectorCreateExprAST(std::string dtype, std::vector<unsigned int> dims)
+        : dtype(std::move(dtype)), dims(std::move(dims)) {}
+};
+
+class VectorSetExprAST : public ExprAST {
+  public:
+    std::string vectorName;
+    int index;
+    std::string(value);
+    VectorSetExprAST(std::string vectorName, int index, std::string value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(std::move(value)) {}
+
+    VectorSetExprAST(std::string vectorName, int index, float value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(std::to_string(value)) {}
+    VectorSetExprAST(std::string vectorName, int index, bool value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(value ? "true" : "false") {}
+};
+
+class VectorGetExprAST : public ExprAST {
+  public:
+    std::string vectorName;
+    int index;
+    VectorGetExprAST(std::string vectorName, int index)
+        : vectorName(std::move(vectorName)), index(index) {}
+};
+
+/// VariableNameExprAST - Expression class for referencing a variable, like "a".
+class VariableNameExprAST : public ExprAST {
   public:
     std::string Name;
-    VariableExprAST(std::string Name) : Name(std::move(Name)) {}
+    VariableNameExprAST(std::string Name) : Name(std::move(Name)) {}
 };
 
 /// BinaryExprAST - Expression class for a binary operator.
@@ -49,7 +107,7 @@ class CallExprAST : public ExprAST {
 
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
-/// of arguments the function takes).
+/// of arguments the function takes). `void funcname(arg1, arg2);`
 class PrototypeAST {
   public:
     std::string Name;
@@ -57,10 +115,6 @@ class PrototypeAST {
 
     PrototypeAST(std::string Name, std::vector<std::string> Args)
         : Name(std::move(Name)), Args(std::move(Args)) {}
-
-    const std::string& getName() const {
-        return Name;
-    }
 };
 
 /// FunctionAST - This class represents a function definition itself.
@@ -107,14 +161,52 @@ class LoopExprAST : public ExprAST {
           Body(std::move(Body)) {}
 };
 
-/// VarExprAST - Expression class for var/in
-class VarExprAST : public ExprAST {
+/// VarDeclExprAST - Expression class for declaring variable and assigning
+/// values to them.
+class VarDeclExprAST : public ExprAST {
   public:
-    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
-    // std::unique_ptr<ExprAST> Body;
-    VarExprAST(
-        std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames)
-        : VarNames(std::move(VarNames)) {}
+    std::vector<std::string> VarNames;
+    std::vector<std::string> VarTypes;
+    std::vector<std::unique_ptr<ExprAST>> VarValues;
+
+    VarDeclExprAST(
+        std::vector<std::string> VarNames,
+        std::vector<std::string> VarTypes,
+        std::vector<std::unique_ptr<ExprAST>> VarValues)
+        : VarNames(std::move(VarNames)),
+          VarTypes(std::move(VarTypes)),
+          VarValues(std::move(VarValues)) {}
+};
+
+/// importAST: `import "./somedir/somepath.deeplang;"
+class ImportExprAST : public ExprAST {
+  public:
+    std::string importPath;
+    ImportExprAST(std::string importPath) : importPath(std::move(importPath)) {}
+};
+
+class StructExprAST : public ExprAST {
+  public:
+    std::string structName;
+    std::vector<std::string> fieldTypes;
+    std::vector<std::string> fieldNames;
+    StructExprAST(
+        std::string structName,
+        std::vector<std::string> fieldTypes,
+        std::vector<std::string> fieldNames)
+        : structName(std::move(structName)),
+          fieldTypes(std::move(fieldTypes)),
+          fieldNames(std::move(fieldNames)) {}
+};
+
+class StructMethodExprAST : public ExprAST {
+  public:
+    std::string structName;
+    std::unique_ptr<ast::FunctionAST> method;
+    StructMethodExprAST(
+        std::string structName,
+        std::unique_ptr<ast::FunctionAST> method)
+        : structName(std::move(structName)), method(std::move(method)) {}
 };
 
 } // namespace ast
