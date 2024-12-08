@@ -41,14 +41,14 @@ class CodeGen {
 
     virtual llvm::Value* codegen(const ast::ExprAST& exprAst);
     llvm::Value* codegen(const ast::NumberExprAST& numAst);
-    llvm::Value* codegen(const ast::VariableExprAST& varAst);
+    llvm::Value* codegen(const ast::VariableNameExprAST& varAst);
     llvm::Value* codegen(const ast::BinaryExprAST& binAst);
     llvm::Value* codegen(const ast::CallExprAST& calAst);
     llvm::Function* codegen(const ast::PrototypeAST& protoAst);
     llvm::Function* codegen(const ast::FunctionAST& fnAst);
     llvm::Value* codegen(const ast::IfExprAST& fnAst);
     llvm::Value* codegen(const ast::LoopExprAST& fnAst);
-    llvm::Value* codegen(const ast::VarExprAST& varAst);
+    llvm::Value* codegen(const ast::VarDeclExprAST& varAst);
 
     void printIR(const ast::FunctionAST& expAst, bool anonymous = false);
 

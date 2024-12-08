@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "ast/ast.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -46,7 +47,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         e = BinaryExpr;
     } else if (typeid(exprAst) == typeid(ast::NumberExprAST)) {
         e = NumberExpr;
-    } else if (typeid(exprAst) == typeid(ast::VariableExprAST)) {
+    } else if (typeid(exprAst) == typeid(ast::VariableNameExprAST)) {
         e = VariableExpr;
     } else if (typeid(exprAst) == typeid(ast::CallExprAST)) {
         e = CallExpr;
@@ -54,7 +55,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         e = IfExpr;
     } else if (typeid(exprAst) == typeid(ast::LoopExprAST)) {
         e = LoopExpr;
-    } else if (typeid(exprAst) == typeid(ast::VarExprAST)) {
+    } else if (typeid(exprAst) == typeid(ast::VarDeclExprAST)) {
         e = VarExpr;
     }
 
@@ -80,7 +81,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         }
         case VariableExpr: {
             const auto* varExpr =
-                dynamic_cast<const ast::VariableExprAST*>(&exprAst);
+                dynamic_cast<const ast::VariableNameExprAST*>(&exprAst);
             if (varExpr) {
                 return codegen(*varExpr);
             }
@@ -112,7 +113,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         }
         case VarExpr: {
             const auto* varExpr =
-                dynamic_cast<const ast::VarExprAST*>(&exprAst);
+                dynamic_cast<const ast::VarDeclExprAST*>(&exprAst);
             if (varExpr) {
                 return codegen(*varExpr);
             }
@@ -146,7 +147,11 @@ llvm::Value* CodeGen::codegen(const ast::NumberExprAST& numAst) {
     return llvm::ConstantFP::get(*this->TheContext, llvm::APFloat(numAst.Val));
 }
 
-llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
+llvm::Value* CodeGen::codegen(const ast::VarDeclExprAST& numAst) {
+    return nullptr;
+}
+
+llvm::Value* CodeGen::codegen(const ast::VariableNameExprAST& varAst) {
     std::cout << "codegen for varAst: " << varAst.Name << "\n";
     llvm::AllocaInst* ptrInst = nullptr;
 
@@ -203,8 +208,8 @@ llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
         // by
         // default. If you build LLVM with RTTI this can be changed to a
         // dynamic_cast for automatic error checking.
-        ast::VariableExprAST* LHSE =
-            static_cast<ast::VariableExprAST*>(binAst.LHS.get());
+        ast::VariableNameExprAST* LHSE =
+            static_cast<ast::VariableNameExprAST*>(binAst.LHS.get());
         if (!LHSE) {
             return LogErrorV("destination of '=' must be a variable");
         }

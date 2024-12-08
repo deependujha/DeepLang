@@ -66,7 +66,7 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
     this->getNextToken(); // eat identifier.
 
     if (this->bt->getValue() != "(") { // Simple variable ref.
-        return std::make_unique<ast::VariableExprAST>(IdName);
+        return std::make_unique<ast::VariableNameExprAST>(IdName);
     }
 
     // Call.

@@ -62,7 +62,7 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     // First, check for an existing function from a previous 'extern'
     // declaration.
     llvm::Function* TheFunction =
-        this->TheModule->getFunction(fnAst.Proto->getName());
+        this->TheModule->getFunction(fnAst.Proto->Name);
 
     if (!TheFunction) {
         TheFunction = this->codegen(*fnAst.Proto);
@@ -79,7 +79,7 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     this->Builder->SetInsertPoint(BB);
 
     // if this is anonymous function, first expression is the return expression
-    if (fnAst.Proto->getName() != "__anon_expr") {
+    if (fnAst.Proto->Name != "__anon_expr") {
         // Record the function arguments in the NamedValues map.
         this->NamedValues.emplace_back();
         for (auto& Arg : TheFunction->args()) {
