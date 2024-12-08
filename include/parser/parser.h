@@ -1,7 +1,6 @@
 #pragma once
 #include <map>
 #include <memory>
-#include <utility>
 #include "ast/ast.h"
 #include "lexer/token.h"
 
@@ -17,6 +16,7 @@ class OperatorPrecedence {
         {"*", 40}, // multiply
         {"/", 40}, // divide
         {"%", 40}, // modulo (remainder)
+        {"**", 50}, // power
     };
 
   public:

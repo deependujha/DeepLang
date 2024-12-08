@@ -2,19 +2,18 @@
 #include <set>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 namespace lexer {
 enum SUPPORTED_TOKENS : int8_t {
     // identifier
     LET,
-    SEMICOLON,
 
     // datatypes
     VARIABLE,
     STRING,
     FLOAT,
     BOOLEAN,
+    VECTOR,
 
     // operator
     OPERATOR,
@@ -28,7 +27,7 @@ enum SUPPORTED_TOKENS : int8_t {
     LOOP,
 
     // struct & methods
-    MY_TYPE,
+    STRUCT,
     METHOD,
 
     // logical operators
@@ -38,6 +37,9 @@ enum SUPPORTED_TOKENS : int8_t {
     // function
     FN,
     RETURN,
+
+    // import
+    IMPORT,
 
     // end-of-file
     END_OF_FILE,

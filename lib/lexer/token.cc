@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 using namespace lexer;
 
@@ -78,13 +77,14 @@ void TokenOperatorUtils::_initialize() {
         {ELIF, "elif"},
         {ELSE, "else"},
         {LOOP, "loop"},
-        {MY_TYPE, "my_type"},
+        {STRUCT, "struct"},
         {METHOD, "method"},
         {AND, "and"},
         {OR, "or"},
         {FN, "fn"},
         {RETURN, "return"},
-    };
+        {IMPORT, "import"},
+        {END_OF_FILE, "end_of_file"}};
     for (auto& e : this->tokenToString) {
         this->stringToToken[e.second] = e.first;
     }
