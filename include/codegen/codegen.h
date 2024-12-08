@@ -26,13 +26,15 @@ class CodeGen {
     std::unique_ptr<llvm::LLVMContext> TheContext;
     std::unique_ptr<llvm::Module> TheModule;
     std::unique_ptr<llvm::IRBuilder<>> Builder;
-    std::map<std::string, llvm::Value*> NamedValues;
+    std::vector<std::map<std::string, std::shared_ptr<llvm::AllocaInst>>>
+        NamedValues;
 
     void initializeModule();
 
   public:
     CodeGen() {
         this->initializeModule();
+        this->NamedValues.emplace_back();
     }
     virtual ~CodeGen() = default;
     llvm::Value* LogErrorV(const char* Str);
@@ -46,7 +48,24 @@ class CodeGen {
     llvm::Function* codegen(const ast::FunctionAST& fnAst);
     llvm::Value* codegen(const ast::IfExprAST& fnAst);
     llvm::Value* codegen(const ast::LoopExprAST& fnAst);
+    llvm::Value* codegen(const ast::VarExprAST& varAst);
 
     void printIR(const ast::FunctionAST& expAst, bool anonymous = false);
+
+    /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block
+    /// of
+    /// the function.  This is used for mutable variables etc.
+    std::unique_ptr<llvm::AllocaInst> CreateEntryBlockAlloca(
+        llvm::Function* TheFunction,
+        const std::string& VarName) {
+        llvm::IRBuilder<> TmpB(
+            &TheFunction->getEntryBlock(),
+            TheFunction->getEntryBlock().begin());
+
+        auto allocaInst = TmpB.CreateAlloca(
+            llvm::Type::getDoubleTy(*this->TheContext), nullptr, VarName);
+        // Return the unique_ptr managing the AllocaInst.
+        return std::unique_ptr<llvm::AllocaInst>(allocaInst);
+    }
 };
 } // namespace codegen

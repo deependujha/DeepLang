@@ -9,6 +9,7 @@ namespace parser {
 class OperatorPrecedence {
   private:
     std::map<std::string, int> BinopPrecedence = {
+        {"=", 2}, // assignment operator
         {"<", 10}, // less than
         {">", 10}, // greater than
         {"+", 20}, // addition
@@ -87,6 +88,10 @@ class Parser {
     /// forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in'
     /// expression
     std::unique_ptr<ast::ExprAST> ParseLoopExpr();
+
+    /// varexpr ::= 'var' identifier ('=' expression)?
+    //                    (',' identifier ('=' expression)?)* 'in' expression
+    std::unique_ptr<ast::ExprAST> ParseVarExpr();
 };
 
 } // namespace parser

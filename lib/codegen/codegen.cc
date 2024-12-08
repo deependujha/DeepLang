@@ -1,5 +1,7 @@
 #include "codegen/codegen.h"
 #include <iostream>
+#include <memory>
+#include <string>
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -35,6 +37,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         CallExpr,
         IfExpr,
         LoopExpr,
+        VarExpr,
         Invalid,
     };
 
@@ -51,6 +54,8 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
         e = IfExpr;
     } else if (typeid(exprAst) == typeid(ast::LoopExprAST)) {
         e = LoopExpr;
+    } else if (typeid(exprAst) == typeid(ast::VarExprAST)) {
+        e = VarExpr;
     }
 
     switch (e) {
@@ -105,12 +110,21 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
             }
             break;
         }
+        case VarExpr: {
+            const auto* varExpr =
+                dynamic_cast<const ast::VarExprAST*>(&exprAst);
+            if (varExpr) {
+                return codegen(*varExpr);
+            }
+            break;
+        }
     }
 
     return nullptr;
 }
 
 void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
+    std::cout << "in print ir function\n";
     if (llvm::Function* FnIR = this->codegen(expAst)) {
         if (anonymous) {
             fprintf(stderr, "Read top-level expression:\n");
@@ -123,6 +137,8 @@ void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
         if (anonymous) { // Remove the anonymous expression.
             FnIR->eraseFromParent();
         }
+    } else {
+        std::cout << "can't generate IR for the function/expression\n";
     }
 }
 
@@ -131,22 +147,76 @@ llvm::Value* CodeGen::codegen(const ast::NumberExprAST& numAst) {
 }
 
 llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
-    // Look this variable up in the function.
-    llvm::Value* V = this->NamedValues[varAst.Name];
-    if (!V) {
-        return LogErrorV("Unknown variable name");
+    std::cout << "codegen for varAst: " << varAst.Name << "\n";
+    llvm::AllocaInst* ptrInst = nullptr;
+
+    for (auto it = this->NamedValues.rbegin(); it != this->NamedValues.rend();
+         ++it) {
+        auto& nv = *it;
+        // std::cout << "------ new namedvalue -------\n";
+        // for (auto& e : nv) {
+        //     std::cout << "namedvalue: " << e.first << " " << e.second <<
+        //     "\n";
+        // }
+        std::cout << "going to check if value exists\n";
+        if (nv.find(varAst.Name) != nv.end()) {
+            std::cout << "value exists in namedspace\n";
+            ptrInst = nv[varAst.Name].get();
+            if (ptrInst) {
+                std::cout
+                    << "ptrInst is valid and holds an AllocaInst at address: "
+                    << ptrInst << "\n";
+            } else {
+                std::cout << "ptrInst is null after move.\n";
+            }
+            std::cout << "meow\n" << ptrInst;
+            break;
+        }
     }
-    return V;
+
+    if (!ptrInst) {
+        std::string errMsg = "Unknown variable name: " + varAst.Name;
+        return LogErrorV(errMsg.c_str());
+    }
+    std::cout << "returning value\n";
+    std::cout << "Allocated type: " << ptrInst->getAllocatedType() << " "
+              << ptrInst->getValueName() << "\n";
+
+    // Load the value.
+    auto meow = this->Builder->CreateLoad(
+        llvm::Type::getDoubleTy(*TheContext), ptrInst, varAst.Name.c_str());
+    std::cout << "chut \n";
+    return meow;
 }
 
 llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
-    llvm::Value* L = this->codegen(*binAst.LHS);
+    llvm::Value* L = nullptr;
+    if (binAst.Op != "=") {
+        L = this->codegen(*binAst.LHS);
+    }
     llvm::Value* R = this->codegen(*binAst.RHS);
     if (!L || !R) {
         return nullptr;
     }
+    if (binAst.Op == "=") {
+        // This assume we're building without RTTI because LLVM builds that way
+        // by
+        // default. If you build LLVM with RTTI this can be changed to a
+        // dynamic_cast for automatic error checking.
+        ast::VariableExprAST* LHSE =
+            static_cast<ast::VariableExprAST*>(binAst.LHS.get());
+        if (!LHSE) {
+            return LogErrorV("destination of '=' must be a variable");
+        }
+        // Look up the name.
+        llvm::Value* Variable = this->NamedValues.back()[LHSE->Name].get();
+        if (!Variable) {
+            return LogErrorV("Unknown variable name");
+        }
 
-    if (binAst.Op == "+") {
+        Builder->CreateStore(R, Variable);
+        return R;
+    } else if (binAst.Op == "+") {
         return Builder->CreateFAdd(L, R, "addtmp");
     } else if (binAst.Op == "-") {
         return Builder->CreateFSub(L, R, "subtmp");
@@ -169,89 +239,6 @@ llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
     } else {
         return LogErrorV("invalid binary operator");
     }
-}
-
-llvm::Value* CodeGen::codegen(const ast::CallExprAST& calAst) {
-    // Look up the name in the global module table.
-    llvm::Function* CalleeF = TheModule->getFunction(calAst.Callee);
-    if (!CalleeF) {
-        return LogErrorV("Unknown function referenced");
-    }
-
-    // If argument mismatch error.
-    if (CalleeF->arg_size() != calAst.Args.size()) {
-        return this->LogErrorV("Incorrect # arguments passed");
-    }
-
-    std::vector<llvm::Value*> ArgsV;
-    for (unsigned i = 0, e = calAst.Args.size(); i != e; ++i) {
-        ArgsV.push_back(this->codegen(*calAst.Args[i]));
-        if (!ArgsV.back()) {
-            return nullptr;
-        }
-    }
-
-    return this->Builder->CreateCall(CalleeF, ArgsV, "calltmp");
-}
-llvm::Function* CodeGen::codegen(const ast::PrototypeAST& protoAst) {
-    // Make the function type:  double(double,double) etc.
-    std::vector<llvm::Type*> Doubles(
-        protoAst.Args.size(), llvm::Type::getDoubleTy(*TheContext));
-    llvm::FunctionType* FT = llvm::FunctionType::get(
-        llvm::Type::getDoubleTy(*TheContext), Doubles, false);
-
-    llvm::Function* F = llvm::Function::Create(
-        FT,
-        llvm::Function::ExternalLinkage,
-        protoAst.Name,
-        this->TheModule.get());
-
-    // Set names for all arguments.
-    unsigned Idx = 0;
-    for (auto& Arg : F->args()) {
-        Arg.setName(protoAst.Args[Idx++]);
-    }
-
-    return F;
-}
-llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
-    // First, check for an existing function from a previous 'extern'
-    // declaration.
-    llvm::Function* TheFunction =
-        this->TheModule->getFunction(fnAst.Proto->getName());
-
-    if (!TheFunction) {
-        TheFunction = this->codegen(*fnAst.Proto);
-    }
-
-    if (!TheFunction) {
-        return nullptr;
-    }
-
-    // Create a new basic block to start insertion into.
-    llvm::BasicBlock* BB =
-        llvm::BasicBlock::Create(*this->TheContext, "entry", TheFunction);
-    this->Builder->SetInsertPoint(BB);
-
-    // Record the function arguments in the NamedValues map.
-    this->NamedValues.clear();
-    for (auto& Arg : TheFunction->args()) {
-        this->NamedValues[std::string(Arg.getName())] = &Arg;
-    }
-
-    if (llvm::Value* RetVal = this->codegen(*fnAst.Body)) {
-        // Finish off the function.
-        this->Builder->CreateRet(RetVal);
-
-        // Validate the generated code, checking for consistency.
-        llvm::verifyFunction(*TheFunction);
-
-        return TheFunction;
-    }
-
-    // Error reading body, remove function.
-    TheFunction->eraseFromParent();
-    return nullptr;
 }
 
 } // namespace codegen
