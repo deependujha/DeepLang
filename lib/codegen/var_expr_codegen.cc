@@ -15,7 +15,7 @@
 namespace codegen {
 llvm::Value* CodeGen::codegen(const ast::VarExprAST& varAst) {
     llvm::Value* InitVal = nullptr;
-    llvm::AllocaInst* Alloca = nullptr;
+    std::unique_ptr<llvm::AllocaInst> Alloca = nullptr;
 
     llvm::Function* TheFunction = this->Builder->GetInsertBlock()->getParent();
 
@@ -35,10 +35,10 @@ llvm::Value* CodeGen::codegen(const ast::VarExprAST& varAst) {
         }
 
         Alloca = this->CreateEntryBlockAlloca(TheFunction, VarName);
-        this->Builder->CreateStore(InitVal, Alloca);
+        this->Builder->CreateStore(InitVal, Alloca.get());
 
         // Remember this binding.
-        this->NamedValues.back()[VarName] = Alloca;
+        this->NamedValues.back()[VarName] = std::move(Alloca);
     }
 
     // Return the nullptr

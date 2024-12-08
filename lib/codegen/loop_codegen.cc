@@ -1,3 +1,4 @@
+#include <memory>
 #include "codegen/codegen.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
@@ -16,7 +17,7 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
     llvm::Function* TheFunction = Builder->GetInsertBlock()->getParent();
 
     // Create an alloca for the variable in the entry block.
-    llvm::AllocaInst* Alloca =
+    std::unique_ptr<llvm::AllocaInst> Alloca =
         this->CreateEntryBlockAlloca(TheFunction, loopAst.VarName);
 
     // Emit the start code first, without 'variable' in scope.
@@ -26,7 +27,7 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
     }
 
     // Store the value into the alloca.
-    this->Builder->CreateStore(StartVal, Alloca);
+    this->Builder->CreateStore(StartVal, Alloca.get());
 
     // Make the new basic block for the loop header, inserting after current
     // block.
@@ -41,8 +42,8 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
 
     // Within the loop, the variable is defined equal to the PHI node.  If it
     // shadows an existing variable, we have to restore it, so save it now.
-    llvm::AllocaInst* OldVal = this->NamedValues.back()[loopAst.VarName];
-    this->NamedValues.back()[loopAst.VarName] = Alloca;
+    auto OldVal = this->NamedValues.back()[loopAst.VarName].get();
+    this->NamedValues.back()[loopAst.VarName] = std::move(Alloca);
 
     // Emit the body of the loop.  This, like any other expr, can change the
     // current BB.  Note that we ignore the value computed by the body, but
@@ -72,10 +73,12 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
     // Reload, increment, and restore the alloca.  This handles the case where
     // the body of the loop mutates the variable.
     llvm::Value* CurVar = this->Builder->CreateLoad(
-        Alloca->getAllocatedType(), Alloca, loopAst.VarName.c_str());
+        Alloca.get()->getAllocatedType(),
+        Alloca.get(),
+        loopAst.VarName.c_str());
     llvm::Value* NextVar =
         this->Builder->CreateFAdd(CurVar, StepVal, "nextvar");
-    this->Builder->CreateStore(NextVar, Alloca);
+    this->Builder->CreateStore(NextVar, Alloca.get());
 
     // Convert condition to a bool by comparing non-equal to 0.0.
     EndCond = Builder->CreateFCmpONE(
@@ -95,7 +98,8 @@ llvm::Value* CodeGen::codegen(const ast::LoopExprAST& loopAst) {
 
     // Restore the unshadowed variable.
     if (OldVal) {
-        this->NamedValues.back()[loopAst.VarName] = OldVal;
+        this->NamedValues.back()[loopAst.VarName] =
+            std::unique_ptr<llvm::AllocaInst>(OldVal);
     } else {
         this->NamedValues.back().erase(loopAst.VarName);
     }

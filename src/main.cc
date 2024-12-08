@@ -2,7 +2,6 @@
 #include <iostream>
 #include "lexer/token.h"
 #include "main_loop.h"
-#include "utils/check_type.h"
 
 using namespace lexer;
 

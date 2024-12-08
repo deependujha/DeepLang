@@ -208,6 +208,11 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
     if (!Proto) {
         return nullptr;
     }
+    if (this->bt->getValue() != "{") {
+        std::cout << "expected '{'\n";
+        return nullptr;
+    }
+    this->getNextToken();
     std::vector<std::unique_ptr<ast::ExprAST>> Body;
     std::unique_ptr<ast::ExprAST> Ret = nullptr;
     while (true) {
@@ -249,12 +254,12 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseDefinition() {
 std::unique_ptr<ast::FunctionAST> Parser::ParseTopLevelExpr() {
     if (auto E = this->ParseExpression()) {
         std::vector<std::unique_ptr<ast::ExprAST>> e;
-        e.push_back(std::move(E));
+        // e.push_back(std::move(E));
         // Make an anonymous proto.
         auto Proto = std::make_unique<ast::PrototypeAST>(
             "__anon_expr", std::vector<std::string>());
         return std::make_unique<ast::FunctionAST>(
-            std::move(Proto), std::move(e), nullptr);
+            std::move(Proto), std::move(e), std::move(E));
     }
     return nullptr;
 }

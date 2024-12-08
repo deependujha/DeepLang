@@ -57,6 +57,7 @@ llvm::Function* CodeGen::codegen(const ast::PrototypeAST& protoAst) {
 
     return F;
 }
+
 llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     // First, check for an existing function from a previous 'extern'
     // declaration.
@@ -68,6 +69,7 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     }
 
     if (!TheFunction) {
+        std::cout << "can't do codegen for function proto\n";
         return nullptr;
     }
 
@@ -76,18 +78,23 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
         llvm::BasicBlock::Create(*this->TheContext, "entry", TheFunction);
     this->Builder->SetInsertPoint(BB);
 
-    // Record the function arguments in the NamedValues map.
-    this->add_new_namedValue();
-    for (auto& Arg : TheFunction->args()) {
-        // Create an alloca for this variable.
-        llvm::AllocaInst* Alloca = this->CreateEntryBlockAlloca(
-            TheFunction, std::string(Arg.getName()));
+    // if this is anonymous function, first expression is the return expression
+    if (fnAst.Proto->getName() != "__anon_expr") {
+        // Record the function arguments in the NamedValues map.
+        this->NamedValues.emplace_back();
+        for (auto& Arg : TheFunction->args()) {
+            // Create an alloca for this variable.
+            std::unique_ptr<llvm::AllocaInst> Alloca =
+                this->CreateEntryBlockAlloca(
+                    TheFunction, std::string(Arg.getName()));
 
-        // Store the initial value into the alloca.
-        Builder->CreateStore(&Arg, Alloca);
+            // Store the initial value into the alloca.
+            Builder->CreateStore(&Arg, Alloca.get());
 
-        // Add arguments to variable symbol table.
-        this->NamedValues.back()[std::string(Arg.getName())] = Alloca;
+            // Add arguments to variable symbol table.
+            this->NamedValues.back()[std::string(Arg.getName())] =
+                std::move(Alloca);
+        }
     }
 
     // Generate code for each body expression.
@@ -112,6 +119,7 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     }
 
     if (!RetVal) {
+        std::cout << "error generating code for function return type\n";
         return nullptr; // Error generating return value.
     }
 
@@ -132,7 +140,7 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
 
     // Error reading body, remove function.
     // TheFunction->eraseFromParent();
-    return nullptr;
+    return TheFunction;
 }
 
 } // namespace codegen

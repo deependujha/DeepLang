@@ -1,5 +1,6 @@
 #include "codegen/codegen.h"
 #include <iostream>
+#include <memory>
 #include <string>
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
@@ -21,8 +22,6 @@ void CodeGen::initializeModule() {
 
     // Create a new builder for the module.
     this->Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-
-    this->add_new_namedValue();
 }
 
 llvm::Value* CodeGen::LogErrorV(const char* Str) {
@@ -125,6 +124,7 @@ llvm::Value* CodeGen::codegen(const ast::ExprAST& exprAst) {
 }
 
 void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
+    std::cout << "in print ir function\n";
     if (llvm::Function* FnIR = this->codegen(expAst)) {
         if (anonymous) {
             fprintf(stderr, "Read top-level expression:\n");
@@ -137,6 +137,8 @@ void CodeGen::printIR(const ast::FunctionAST& expAst, bool anonymous) {
         if (anonymous) { // Remove the anonymous expression.
             FnIR->eraseFromParent();
         }
+    } else {
+        std::cout << "can't generate IR for the function/expression\n";
     }
 }
 
@@ -145,6 +147,7 @@ llvm::Value* CodeGen::codegen(const ast::NumberExprAST& numAst) {
 }
 
 llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
+    std::cout << "codegen for varAst: " << varAst.Name << "\n";
     llvm::AllocaInst* ptrInst = nullptr;
 
     for (auto it = this->NamedValues.rbegin(); it != this->NamedValues.rend();
@@ -155,8 +158,18 @@ llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
         //     std::cout << "namedvalue: " << e.first << " " << e.second <<
         //     "\n";
         // }
+        std::cout << "going to check if value exists\n";
         if (nv.find(varAst.Name) != nv.end()) {
-            ptrInst = nv[varAst.Name];
+            std::cout << "value exists in namedspace\n";
+            ptrInst = nv[varAst.Name].get();
+            if (ptrInst) {
+                std::cout
+                    << "ptrInst is valid and holds an AllocaInst at address: "
+                    << ptrInst << "\n";
+            } else {
+                std::cout << "ptrInst is null after move.\n";
+            }
+            std::cout << "meow\n" << ptrInst;
             break;
         }
     }
@@ -165,9 +178,15 @@ llvm::Value* CodeGen::codegen(const ast::VariableExprAST& varAst) {
         std::string errMsg = "Unknown variable name: " + varAst.Name;
         return LogErrorV(errMsg.c_str());
     }
+    std::cout << "returning value\n";
+    std::cout << "Allocated type: " << ptrInst->getAllocatedType() << " "
+              << ptrInst->getValueName() << "\n";
+
     // Load the value.
-    return this->Builder->CreateLoad(
-        ptrInst->getAllocatedType(), ptrInst, varAst.Name.c_str());
+    auto meow = this->Builder->CreateLoad(
+        llvm::Type::getDoubleTy(*TheContext), ptrInst, varAst.Name.c_str());
+    std::cout << "chut \n";
+    return meow;
 }
 
 llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
@@ -190,7 +209,7 @@ llvm::Value* CodeGen::codegen(const ast::BinaryExprAST& binAst) {
             return LogErrorV("destination of '=' must be a variable");
         }
         // Look up the name.
-        llvm::Value* Variable = this->NamedValues.back()[LHSE->Name];
+        llvm::Value* Variable = this->NamedValues.back()[LHSE->Name].get();
         if (!Variable) {
             return LogErrorV("Unknown variable name");
         }

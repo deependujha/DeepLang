@@ -1,5 +1,4 @@
 #include "main_loop.h"
-#include <exception>
 #include <iostream>
 #include "parser/parser.h"
 
