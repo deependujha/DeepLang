@@ -74,6 +74,17 @@ lexer::BaseToken* Parser::getTok() {
         return new lexer::BaseToken(this->tou, lexer::END_OF_FILE);
     }
 
+    // check if this is a string starting with (")
+    if (this->LastChar == '"') {
+        this->getNextToken();
+        std::string str;
+        while (this->LastChar != '"') {
+            str += std::string{this->LastChar};
+            this->LastChar = char(getchar());
+        }
+        return new lexer::BaseToken(this->tou, lexer::STRING, str);
+    }
+
     // Otherwise, just return the character as its ascii value.
     std::string opr = std::string{this->LastChar};
     // check if opr is closing/starting symbol

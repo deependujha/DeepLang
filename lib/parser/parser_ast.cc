@@ -27,13 +27,6 @@ std::unique_ptr<ast::ExprAST> Parser::ParseExpression() {
     return this->ParseBinOpRHS(0, std::move(LHS));
 }
 
-/// numberexpr ::= number
-std::unique_ptr<ast::ExprAST> Parser::ParseNumberExpr() {
-    auto Result =
-        std::make_unique<ast::NumberExprAST>(this->bt->getValueFloat());
-    this->getNextToken(); // consume the number
-    return std::move(Result);
-}
 /// parenexpr ::= "(" expression ")"
 std::unique_ptr<ast::ExprAST> Parser::ParseParenExpr() {
     if (this->bt->getTokenEnum() != lexer::OPERATOR ||
@@ -105,22 +98,35 @@ std::unique_ptr<ast::ExprAST> Parser::ParseIdentifierExpr() {
 ///   ::= numberexpr
 ///   ::= parenexpr
 std::unique_ptr<ast::ExprAST> Parser::ParsePrimary() {
-    switch (this->bt->getTokenEnum()) {
-        default:
-            this->bt->printLn();
-            return LogError("unknown token when expecting an expression");
-        case lexer::FLOAT:
-            return this->ParseNumberExpr();
-        case lexer::OPERATOR:
-            return this->ParseParenExpr();
-        case lexer::IF:
-            return this->ParseIfExpr();
-        case lexer::LOOP:
-            return this->ParseLoopExpr();
-        case lexer::VARIABLE:
-            return this->ParseIdentifierExpr();
-        case lexer::LET:
-            return this->ParseVarExpr();
+    if (this->bt->getTokenEnum() == lexer::FLOAT ||
+        this->bt->getTokenEnum() == lexer::STRING ||
+        this->bt->getTokenEnum() == lexer::BOOLEAN) {
+        return this->ParseValueExpr();
+    }
+
+    else if (this->bt->getTokenEnum() == lexer::OPERATOR) {
+        return this->ParseParenExpr();
+    }
+
+    else if (this->bt->getTokenEnum() == lexer::IF) {
+        return this->ParseIfExpr();
+    }
+
+    else if (this->bt->getTokenEnum() == lexer::LOOP) {
+        return this->ParseLoopExpr();
+    }
+
+    else if (this->bt->getTokenEnum() == lexer::VARIABLE) {
+        return this->ParseIdentifierExpr();
+    }
+
+    else if (this->bt->getTokenEnum() == lexer::LET) {
+        return this->ParseVarExpr();
+    }
+
+    else {
+        this->bt->printLn();
+        return LogError("unknown token when expecting an expression");
     }
 }
 
@@ -262,6 +268,19 @@ std::unique_ptr<ast::FunctionAST> Parser::ParseTopLevelExpr() {
             std::move(Proto), std::move(e), std::move(E));
     }
     return nullptr;
+}
+
+std::unique_ptr<ast::ExprAST> Parser::ParseImportExpr() {
+    if (this->bt->getTokenEnum() != lexer::IMPORT) {
+        return LogError("expected import");
+    }
+    this->getNextToken(); // eat import
+    if (this->bt->getTokenEnum() != lexer::STRING) {
+        return LogError("expected path(string) after import keyword");
+    }
+    std::string importPath = this->bt->getValue();
+
+    return std::make_unique<ast::ImportExprAST>(importPath);
 }
 
 } // namespace parser

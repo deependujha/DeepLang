@@ -40,6 +40,42 @@ class StringExprAST : public ExprAST {
     StringExprAST(std::string Val) : Val(std::move(Val)) {}
 };
 
+class VectorCreateExprAST : public ExprAST {
+  public:
+    std::string dtype;
+    std::vector<unsigned int> dims;
+    VectorCreateExprAST(std::string dtype, std::vector<unsigned int> dims)
+        : dtype(std::move(dtype)), dims(std::move(dims)) {}
+};
+
+class VectorSetExprAST : public ExprAST {
+  public:
+    std::string vectorName;
+    int index;
+    std::string(value);
+    VectorSetExprAST(std::string vectorName, int index, std::string value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(std::move(value)) {}
+
+    VectorSetExprAST(std::string vectorName, int index, float value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(std::to_string(value)) {}
+    VectorSetExprAST(std::string vectorName, int index, bool value)
+        : vectorName(std::move(vectorName)),
+          index(index),
+          value(value ? "true" : "false") {}
+};
+
+class VectorGetExprAST : public ExprAST {
+  public:
+    std::string vectorName;
+    int index;
+    VectorGetExprAST(std::string vectorName, int index)
+        : vectorName(std::move(vectorName)), index(index) {}
+};
+
 /// VariableNameExprAST - Expression class for referencing a variable, like "a".
 class VariableNameExprAST : public ExprAST {
   public:
@@ -149,38 +185,28 @@ class ImportExprAST : public ExprAST {
     ImportExprAST(std::string importPath) : importPath(std::move(importPath)) {}
 };
 
-class VectorExprAST : public ExprAST {
-  public:
-    std::string dtype;
-    std::vector<ExprAST*> exprs;
-    std::vector<int> dims;
-    VectorExprAST(
-        std::string dtype,
-        std::vector<ExprAST*> exprs,
-        std::vector<int> dims)
-        : dtype(std::move(dtype)),
-          exprs(std::move(exprs)),
-          dims(std::move(dims)) {}
-
-    unsigned long long size() {
-        return this->exprs.size();
-    }
-};
-
 class StructExprAST : public ExprAST {
   public:
+    std::string structName;
+    std::vector<std::string> fieldTypes;
     std::vector<std::string> fieldNames;
-    std::vector<ExprAST*> fieldExprs;
-    std::vector<llvm::Function*> methods;
     StructExprAST(
-        std::vector<std::string> fieldNames,
-        std::vector<ExprAST*> fieldExprs)
-        : fieldNames(std::move(fieldNames)),
-          fieldExprs(std::move(fieldExprs)) {}
+        std::string structName,
+        std::vector<std::string> fieldTypes,
+        std::vector<std::string> fieldNames)
+        : structName(std::move(structName)),
+          fieldTypes(std::move(fieldTypes)),
+          fieldNames(std::move(fieldNames)) {}
+};
 
-    void addMethod(llvm::Function* method) {
-        this->methods.push_back(method);
-    }
+class StructMethodExprAST : public ExprAST {
+  public:
+    std::string structName;
+    std::unique_ptr<ast::FunctionAST> method;
+    StructMethodExprAST(
+        std::string structName,
+        std::unique_ptr<ast::FunctionAST> method)
+        : structName(std::move(structName)), method(std::move(method)) {}
 };
 
 } // namespace ast

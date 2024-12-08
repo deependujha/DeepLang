@@ -47,10 +47,14 @@ class Parser {
 
     std::unique_ptr<ast::ExprAST> ParseExpression();
 
-    /// numberexpr ::= number
-    std::unique_ptr<ast::ExprAST> ParseNumberExpr();
+    /// parses float, string, bool
+    std::unique_ptr<ast::ExprAST> ParseValueExpr();
+
     /// parenexpr ::= "(" expression ")"
     std::unique_ptr<ast::ExprAST> ParseParenExpr();
+
+    /// parse import statement
+    std::unique_ptr<ast::ExprAST> ParseImportExpr();
 
     /// identifierexpr
     ///   ::= identifier
@@ -92,6 +96,10 @@ class Parser {
     /// varexpr ::= 'var' identifier ('=' expression)?
     //                    (',' identifier ('=' expression)?)* 'in' expression
     std::unique_ptr<ast::ExprAST> ParseVarExpr();
+
+    /// struct & method parser
+    std::unique_ptr<ast::ExprAST> ParseStructExpr();
+    std::unique_ptr<ast::ExprAST> ParseStructMethodExpr();
 };
 
 } // namespace parser
