@@ -79,23 +79,22 @@ llvm::Function* CodeGen::codegen(const ast::FunctionAST& fnAst) {
     this->Builder->SetInsertPoint(BB);
 
     // if this is anonymous function, first expression is the return expression
-    if (fnAst.Proto->Name != "__anon_expr") {
-        // Record the function arguments in the NamedValues map.
-        this->NamedValues.emplace_back();
-        for (auto& Arg : TheFunction->args()) {
-            // Create an alloca for this variable.
-            std::unique_ptr<llvm::AllocaInst> Alloca =
-                this->CreateEntryBlockAlloca(
-                    TheFunction, std::string(Arg.getName()));
+    // if (fnAst.Proto->Name != "__anon_expr") {
+    // Record the function arguments in the NamedValues map.
+    this->NamedValues.clear();
+    for (auto& Arg : TheFunction->args()) {
+        // Create an alloca for this variable.
+        std::unique_ptr<llvm::AllocaInst> Alloca = this->CreateEntryBlockAlloca(
+            TheFunction, std::string(Arg.getName()));
 
-            // Store the initial value into the alloca.
-            Builder->CreateStore(&Arg, Alloca.get());
+        // Store the initial value into the alloca.
+        Builder->CreateStore(&Arg, Alloca.get());
 
-            // Add arguments to variable symbol table.
-            this->NamedValues.back()[std::string(Arg.getName())] =
-                std::move(Alloca);
-        }
+        // Add arguments to variable symbol table.
+        this->NamedValues.back()[std::string(Arg.getName())] =
+            std::move(Alloca);
     }
+    // }
 
     // Generate code for each body expression.
     for (size_t i = 0; i < fnAst.Body.size(); ++i) {

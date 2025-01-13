@@ -16,4 +16,5 @@ target_include_directories(${CODEGEN_LIBRARY_NAME} PRIVATE
 target_link_libraries(${CODEGEN_LIBRARY_NAME} PRIVATE 
     ${AST_LIBRARY_NAME}
     ${LLVM}
+    ${LLVM_LIBS}
 )
