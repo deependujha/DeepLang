@@ -37,3 +37,6 @@ build
 # doxygen docs
 docs/html
 docs/latex
+
+.cache
+*DS_Store
