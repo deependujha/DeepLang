@@ -24,6 +24,11 @@ find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 llvm_map_components_to_libnames(LLVM_LIBS core support irreader)
 
+add_definitions(${LLVM_DEFINITIONS})
+
+# Optional: Map components to library names (adjust based on your needs)
+llvm_map_components_to_libnames(LLVM_LIBS core orcjit native)
+
 
 add_subdirectory(lib)
 add_subdirectory(src)

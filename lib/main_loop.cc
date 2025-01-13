@@ -35,7 +35,8 @@ void MainLoop::HandleDefinition() {
 void MainLoop::HandleTopLevelExpression() {
     // Evaluate a top-level expression into an anonymous function.
     if (auto FnAST = prs->ParseTopLevelExpr()) {
-        this->cg->printIR(*FnAST, true);
+        // this->cg->printIR(*FnAST, true);
+        this->cg->executeTopLevelExpression();
     } else {
         // Skip token for error recovery.
         prs->getNextToken();

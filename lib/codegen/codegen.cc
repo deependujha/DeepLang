@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 #include "ast/ast.h"
+#include "codegen/KaleidoscopeJIT.h"
 #include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -14,15 +14,52 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/StandardInstrumentations.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Transforms/Scalar/Reassociate.h"
+#include "llvm/Transforms/Scalar/SimplifyCFG.h"
 
 namespace codegen {
-void CodeGen::initializeModule() {
+void CodeGen::InitializeModuleAndManagers() {
     // Open a new context and module.
     this->TheContext = std::make_unique<llvm::LLVMContext>();
     this->TheModule = std::make_unique<llvm::Module>("deeplang", *TheContext);
+    this->TheModule->setDataLayout(TheJIT->getDataLayout());
 
     // Create a new builder for the module.
     this->Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
+
+    // Create new pass and analysis managers.
+    this->TheFPM = std::make_unique<llvm::FunctionPassManager>();
+    this->TheLAM = std::make_unique<llvm::LoopAnalysisManager>();
+    this->TheFAM = std::make_unique<llvm::FunctionAnalysisManager>();
+    this->TheCGAM = std::make_unique<llvm::CGSCCAnalysisManager>();
+    this->TheMAM = std::make_unique<llvm::ModuleAnalysisManager>();
+    this->ThePIC = std::make_unique<llvm::PassInstrumentationCallbacks>();
+    this->TheSI = std::make_unique<llvm::StandardInstrumentations>(
+        *TheContext,
+        /*DebugLogging*/ true);
+    this->TheSI->registerCallbacks(*ThePIC, TheMAM.get());
+
+    // Add transform passes.
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    this->TheFPM->addPass(llvm::InstCombinePass());
+    // Reassociate expressions.
+    this->TheFPM->addPass(llvm::ReassociatePass());
+    // Eliminate Common SubExpressions.
+    this->TheFPM->addPass(llvm::GVNPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    this->TheFPM->addPass(llvm::SimplifyCFGPass());
+
+    // Register analysis passes used in these transform passes.
+    llvm::PassBuilder PB;
+    PB.registerModuleAnalyses(*TheMAM);
+    PB.registerFunctionAnalyses(*TheFAM);
+    PB.crossRegisterProxies(*TheLAM, *TheFAM, *TheCGAM, *TheMAM);
 }
 
 llvm::Value* CodeGen::LogErrorV(const char* Str) {
